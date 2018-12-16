@@ -1,0 +1,3 @@
+Report statement or libraries that print to the console cause still
+make the simulation work, but cause the bit file to behave weirly once deployed on the FPGA.
+Watch out for this!
