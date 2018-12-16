@@ -1,0 +1,15 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{\texorpdfstring{\fourq}{FourQ}} \label{chp: FourQ}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont M
+		\normalfont}}{athematical} 
+details of {\fourq} are described in this chapter.
+{\fourq} is a scalar multiplication algorithm that makes use of a four-dimensional GLV decomposition to increase its performance.
+Compared to other constant-time alternatives, {\fourq} is fast and performs better than any other known software alternative after its appearance \cite{costello2015fourq}. 
+In addition, {\fourq} has been designed with simplicity in mind, and even some speed trade-offs have been made to ensure this.
+As {\fourq} supports both variable and fixed-base scalar multiplication, it can be used to achieve fast Diffie-Hellman (DH) key exchange.
+
+
+\input{sections/the_curve_fourq}
+

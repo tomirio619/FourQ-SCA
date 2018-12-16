@@ -1,0 +1,16 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{Side Channel Attacks} \label{chp: Side Channel Attacks}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont W
+		\normalfont}}{e} 
+describe the side-channel attack used to evaluate the hardware design of {\fourq} (presented in \cite{jarvinen2016four}) in this chapter. 
+We first explain Simple Power Analysis (SPA).
+We then introduce the concept of \emph{template attacks}.
+This is a powerful type of side-channel attack in which profiles are created for the targeted device that are used later on to obtain the secret key.
+After that, we look into a different flavor of template attacks that is called \emph{Online Template Attacks} (OTA). 
+This improvement of template attacks reduces the number of required template traces to perform the attack.
+
+\input{sections/simple_power_analysis}
+\input{sections/template_attack}
+\input{sections/online_template_attack}

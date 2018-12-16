@@ -1,0 +1,23 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\subsection{Performance results}
+In \cite[§6]{costello2015fourq}, the performance of {\fourq} (which targets the 128-bit security level) is compared to other efficient curve-based primitives: the twisted Edwards GLV+GLS curve \cite{longa2014four} which is defined over $\mathbb{F}_{p^2}$ with $p = 2^{127} - 1$, and the genus 2 Kummer surface \cite{gaudry2012genus} which is defined over $\mathbb{F}_p$ with $p = 2^{127} - 5997$.
+We refer to these curves as ``GLV+GLS'' and ``Kummer'' (as is also done in \cite{costello2015fourq}).
+The operation count for these curves was reviewed and summarized in \cite[§6.1]{costello2015fourq}.
+We can see that the operation count for the GLV+GLS routine is less than the operation count for {\fourq}.
+However the authors of {\fourq} state that this difference is negligible due to the faster modular arithmetic and ``superior simplicity'' of {\fourqs} design.
+The authors of {\fourq} also wrote a standalone library that supports {\fourq}%
+\footnote{\url{http://research.microsoft.com/en-us/projects/fourqlib/}}.
+The library supports all of the basic elliptic curve operations.
+This includes support for variable-base, fixed-base and double scalar multiplications.
+This implementation was used to compare the performance of {\fourq} with other state-of-the-art implementations that are documented in literature.
+These results can be seen in \cite[§6.2]{costello2015fourq}.
+The results for {\fourq} are based on one round of an ephemeral Diffie-Hellman (DH) key exchange.
+They show the execution time (expressed in the number of clock cycles) for both variable-base and fixed-base scalar multiplication.
+Based on these results, we can see that {\fourq} is $1.24 - 1.29$ times faster than the previously regarded fastest implementation.
+The Kummer implementation for the Haswell architecture using variable-base is particularly fast.
+This is because this design is making use of the AVX2 vector instruction set.
+However, the {\fourq} implementation is still 1.09 times faster, without any optimization being applied.
+This makes the increase in speed that can be gained even more promising.
+
+

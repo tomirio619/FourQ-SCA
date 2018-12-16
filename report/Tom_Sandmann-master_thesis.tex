@@ -1,0 +1,183 @@
+% !TeX spellcheck = en_US
+% !TeX program = pdflatex
+%\RequirePackage{pkgloader} % Deals with order in which packages need to be loaded
+\documentclass[11pt, a4paper, english]{report}
+%\RequirePackage[l2tabu, orthodox]{nag}
+\usepackage{babel}
+\usepackage{microtype}
+\usepackage{etex}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[ddmmyyyy]{datetime}
+\usepackage{amsfonts}
+\usepackage{newtxtext}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{lettrine}		%For big letters (i.e. dropped capitals) when starting a new chapter
+\usepackage{enumerate}
+\usepackage{multicol}
+\usepackage{etoolbox}
+\usepackage{adjustbox}
+\usepackage[dvipsnames, table]{xcolor}
+
+\usepackage{ntheorem}
+\usepackage{float}
+\usepackage{subfig}
+\usepackage{caption}
+
+% For load order, see https://tex.stackexchange.com/questions/24586/how-to-hyperref-a-pageref-in-second-half-of-an-algorithm-independent-of-first-h
+\usepackage[hypertexnames=false]{hyperref}  % needed to help hyperlinks direct correctly;
+\usepackage[all]{hypcap}
+\usepackage[chapter]{algorithm}
+\usepackage{algorithmicx, algpseudocode}
+
+\usepackage{cryptocode}
+\usepackage{booktabs}
+\usepackage{pdftexcmds}
+\usepackage[newfloat]{minted}
+\usepackage{mathpartir}
+\usepackage{mathrsfs}
+
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{textcomp}
+\usepackage{xpatch}
+\usepackage{gensymb}
+\usepackage{marvosym}
+\usepackage{tikz}
+\usepackage{bytefield}
+
+\usepackage{physics}
+
+\usepackage{cancel}
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+\usepackage[noabbrev,capitalize]{cleveref}
+\usepackage[ocgcolorlinks]{ocgx2} % See https://tex.stackexchange.com/a/230762 , prevents the colors from references and such from being printed on actual paper
+
+%\LoadPackagesNow % pkgloader: load the packages
+
+% Enabling some tikz libararies
+\usetikzlibrary{automata, positioning, arrows, calc, intersections, through, backgrounds, tikzmark}
+\pgfplotsset{compat=1.12}
+
+%Default minted style
+\setminted{style=default}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Minted Source Code Spanning Multiple Pages %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% @see http://tex.stackexchange.com/questions/254044/caption-and-label-on-minted-code %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Listing}
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+% Royal Initialen Font %
+%%%%%%%%%%%%%%%%%%%%%%
+\input RoyalIn.fd
+\newcommand*\initfamily{\usefont{U}{RoyalIn}{xl}{n}}
+
+
+%%%%%%%%%%%%
+% Settings %
+%%%%%%%%%%%%
+\graphicspath{{img/}}
+\captionsetup{hypcap=false}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Break theorem after its label %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{break}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Algo in/out redefine %
+%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\algorithmicrequire}{\textbf{Input: }}
+\renewcommand{\algorithmicensure}{\textbf{Output: }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Custom colors for hyperref																		 %	
+% @see https://tex.stackexchange.com/questions/100905/best-practice-for-hyperref-link-colours/102068 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\myshade{85}
+\colorlet{mylinkcolor}{violet}
+\colorlet{mycitecolor}{YellowOrange}
+\colorlet{myurlcolor}{Aquamarine}
+
+\hypersetup{
+	linkcolor  = mylinkcolor!\myshade!black,
+	citecolor  = mycitecolor!\myshade!black,
+	urlcolor   = myurlcolor!\myshade!black,
+	colorlinks = true,
+}
+
+%%%%%%%%%%
+% Macros %
+%%%%%%%%%%
+\newcommand{\fourq}{Four$\mathbb{Q}$}
+\newcommand{\fourqs}{Four$\mathbb{Q}$'s}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lemma's and definitions %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+
+% For citing RFC's, see this tool:
+% http://notesofaprogrammer.blogspot.nl/2014/11/bibtex-entries-for-ietf-rfcs-and.html
+
+%%%%%%%%%%%%%%%%%%
+% Tikz functions %
+%%%%%%%%%%%%%%%%%%
+\pgfmathdeclarefunction{gauss}{2}{%
+	\pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Disable PDF inclusion warnings, see https://tex.stackexchange.com/a/78020 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pdfsuppresswarningpagegroup=1
+
+
+\begin{document}	
+	\input{front/title_page}	
+	
+	\clearpage
+	\hypersetup{pageanchor=false}
+	\input{chapters/abstract}
+	\input{chapters/acknowledgements}
+	\hypersetup{pageanchor=true}
+	\clearpage
+	
+	\microtypesetup{protrusion=false}
+	\tableofcontents
+	\microtypesetup{protrusion=true}
+	
+	\input{chapters/introduction}
+	\input{chapters/fpga}
+	\input{chapters/elliptic_curves}
+	\input{chapters/fourq}
+	\input{chapters/fourq_on_hardware}
+	\input{chapters/side_channel_attack}
+	\input{chapters/attacking_fourq}
+	
+	\input{chapters/conclusion}
+	
+	% Bibliography with fontsize of footnote
+	\bibliographystyle{plain}
+	{\footnotesize
+	\bibliography{bib/references}
+	}
+	
+	\input{chapters/appendix}
+\end{document}

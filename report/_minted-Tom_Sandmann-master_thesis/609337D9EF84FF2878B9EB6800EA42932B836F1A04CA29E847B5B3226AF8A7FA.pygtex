@@ -1,0 +1,19 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{p}{[...]}
+\PYG{n}{addr} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mh}{x\PYGZdq{}02\PYGZdq{}} \PYG{o}{\PYGZam{}} \PYG{l+s+sc}{\PYGZsq{}0\PYGZsq{}}\PYG{p}{;}
+\PYG{k}{wait} \PYG{k}{for} \PYG{n}{PERIOD}\PYG{p}{;}        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} X0[0]}
+\PYG{n}{addr} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mh}{x\PYGZdq{}02\PYGZdq{}} \PYG{o}{\PYGZam{}} \PYG{l+s+sc}{\PYGZsq{}1\PYGZsq{}}\PYG{p}{;}
+\PYG{k}{wait} \PYG{k}{for} \PYG{n}{PERIOD}\PYG{p}{;}        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} X0[1]}
+\PYG{n}{addr} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mh}{x\PYGZdq{}03\PYGZdq{}} \PYG{o}{\PYGZam{}} \PYG{l+s+sc}{\PYGZsq{}0\PYGZsq{}}\PYG{p}{;}
+\PYG{k}{wait} \PYG{k}{for} \PYG{n}{PERIOD}\PYG{p}{;}        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} X1[0]}
+\PYG{n}{addr} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mh}{x\PYGZdq{}03\PYGZdq{}} \PYG{o}{\PYGZam{}} \PYG{l+s+sc}{\PYGZsq{}1\PYGZsq{}}\PYG{p}{;}
+\PYG{k}{wait} \PYG{k}{for} \PYG{n}{PERIOD}\PYG{p}{;}        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} X1[1]}
+
+\PYG{n}{addr} \PYG{o}{\PYGZlt{}=} \PYG{l+m+mh}{x\PYGZdq{}04\PYGZdq{}} \PYG{o}{\PYGZam{}} \PYG{l+s+sc}{\PYGZsq{}0\PYGZsq{}}\PYG{p}{;}
+\PYG{n}{table\PYGZus{}value} \PYG{o}{\PYGZlt{}=} \PYG{n}{r\PYGZus{}xcoords}\PYG{p}{(}\PYG{l+m+mi}{4}\PYG{o}{*}\PYG{n}{i}\PYG{p}{);}
+\PYG{k}{wait} \PYG{k}{for} \PYG{n}{PERIOD}\PYG{p}{;}        \PYG{c+c1}{\PYGZhy{}\PYGZhy{} Y0[0]}
+\PYG{k}{if} \PYG{n}{do} \PYG{o}{/=} \PYG{n}{table\PYGZus{}value} \PYG{k}{then}
+\PYG{n}{report} \PYG{l+s}{\PYGZdq{}Incorrect x\PYGZhy{}coord[0,0]!\PYGZdq{}} \PYG{k}{severity} \PYG{n}{error}\PYG{p}{;}
+\PYG{k}{end} \PYG{k}{if}\PYG{p}{;}
+\PYG{p}{[...]}
+\end{Verbatim}

@@ -1,0 +1,16 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{\texorpdfstring{Attacking \fourq}{Attacking FourQ}} \label{chp: Attacking FourQ}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont I
+		\normalfont}}{n} 
+this chapter, we describe how we attack {\fourq}.
+In \Cref{chp: Side Channel Attacks}, we have seen how we can apply an \emph{Online Template Attack} (OTA) to a very simple left-to-right double-and-add always algorithm that performed its calculations in constant time.
+When applying an OTA to {\fourq}, we have to slightly change our approach to attack the key bits compared to the example we gave in \Cref{chp: Side Channel Attacks}.
+In addition, the attack itself is also more difficult, as it (at first sight) requires us to inverse both the scalar recoding and scalar decomposition routines when generating the templates used in attacking the scalar.
+We discuss these practicalities in this chapter.
+
+\input{sections/applying_ota_to_fourq}
+\input{sections/inverting_scalar_recoding}
+\input{sections/determining_offsets}
+\input{sections/matching_the_templates}

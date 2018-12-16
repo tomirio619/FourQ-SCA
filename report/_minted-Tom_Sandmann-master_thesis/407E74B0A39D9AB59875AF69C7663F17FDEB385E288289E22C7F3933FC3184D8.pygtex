@@ -1,0 +1,4 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{command} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}LeCroy.ActiveDSOCtrl.1\PYGZdq{}}
+\PYG{n}{\PYGZus{}scope} \PYG{o}{=} \PYG{n}{win32com}\PYG{o}{.}\PYG{n}{client}\PYG{o}{.}\PYG{n}{Dispatch}\PYG{p}{(}\PYG{n}{command}\PYG{p}{)}
+\end{Verbatim}

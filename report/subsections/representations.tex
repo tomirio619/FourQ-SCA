@@ -1,0 +1,187 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Alternative representations for fast computations} \label{sec: Alternative representations for fast computations}
+% https://en.wikipedia.org/wiki/Affine_space#Informal_description
+% https://www.cosic.esat.kuleuven.be/bcrypt/lecture%20slides/wouter.pdf
+% https://math.stackexchange.com/questions/2331544/difference-between-affine-and-projective-elliptic-curve
+% https://perso.univ-rennes1.fr/christophe.ritzenthaler/cours/elliptic-curve-course.pdf
+% https://en.wikipedia.org/wiki/Linear_map#Definition_and_first_consequences
+By changing the point representation of the points on the Edwards curve, we can increase the computation speed of the operations on these points.
+In our definition of an elliptic curve in Weierstrass form, we defined an algebraic affine curve which is a curve in affine space.
+In the following subsections, we introduce the concepts of affine and projective space, and describe how they are related.
+
+\subsection{Affine space}
+Informally, an affine space is what is left of a vector space once we have forgotten which point is the origin. Instead, we add translations to the linear maps over the vector space.
+% https://math.stackexchange.com/questions/1303351/need-help-understanding-wikis-informal-description-of-an-affine-space
+A simple explanation in the form of an analogy can be found on Wikipedia%
+\footnote{\url{https://en.wikipedia.org/wiki/Affine_space}}.
+Assume Alice and Bob want to add two vectors $\vec{a}$ and $\vec{b}$ (which are vectors measured from Alice's origin). 
+However, both Alice and Bob disagree about which point is the origin. Alice knows that a certain point is the actual origin, but Bob believes that this is another point, which we call $p$.
+Note that both Alice and Bob agree on which \textit{points} are $a$ and $b$, but disagree about the correspondence between \textit{points} and \textit{vectors}.
+To add the vectors, Bob draws an arrow from point $p$ to point $a$ and another arrow from point $p$ to point $b$, thus completing the parallelogram for vector addition and finding the resulting point which Bob believes is $\vec{a} + \vec{b}$.
+Alice however knows that Bob actually computed the following:
+%
+\begin{align*}
+p + (\vec{a}- p) + (\vec{b} - p)
+\end{align*}
+%
+Note that the point-from-vector subtraction seems odd at first sight.
+However, if we combine it with the addition notation $p + \vec{v}$, we can interpret it as follows: ``the result point after applying the transformation represented by vector $\vec{v}$ to point $p$''.
+Similarly, Alice and Bob can evaluate any linear combination of $\vec{a}$ and $\vec{b}$ or any finite set of vectors with generally different answers.
+If the sum of coefficients in the linear combination adds up to 1, then both Alice and Bob will end up with the same answer. So if Alice evaluates the following expression:
+%
+\begin{align*}
+\lambda \vec{a} + (1 - \lambda) \vec{b}
+\end{align*}
+%
+then Bob similarly will evaluate
+%
+\begin{align*}
+p + \lambda (\vec{a} - p) + (1-\lambda)(\vec{b} - p) &= p + \lambda \vec{a} - \lambda p + \vec{b} - p - \lambda \vec{b} + \lambda p \\
+&= \cancel{p - p + \lambda p - \lambda p} + \lambda \vec{a} + \vec{b} - \lambda \vec{b} \\
+&= \lambda \vec{a} + (1 - \lambda) \vec{b}
+\end{align*}
+%
+Thus Alice and Bob describe the same point with the same linear combination for all coefficients $\lambda + (1 - \lambda) = 1$, despite making use of different origins.
+Only Alice knows the ``linear structure'' of the result, but they both know the ``affine structure'' which is the linear combination of vectors in which the sum of the coefficients adds up to 1 (such a linear combination is also called an affine combination).
+A set which has an affine structure is called an affine space.
+
+% https://crypto.stackexchange.com/questions/40947/what-is-the-projective-space
+% https://mathoverflow.net/questions/87847/explaining-the-concept-of-projective-space-notes-for-students
+\subsection{Projective space}
+Besides having affine coordinates in affine space, we can also have projective coordinates in projective space.
+We often make use of the Cartesian coordinate system, which is a coordinate system that specifies each point in a plane uniquely by a pair of numerical coordinates. These points are described by signed distances from two fixed perpendicular lines which are called the axes of the system. The origin is the ordered pair $(0, 0)$, which is the point where both axes intersect. Points can also be described in $n$-dimensional Euclidean space, for any dimension $n$.
+Similarly how Cartesian coordinates are used in Euclidean geometry, \textit{projective coordinates} or homogeneous coordinates are used in projective geometry. 
+Affine spaces are subspaces of projective spaces.
+We can obtain an affine plane from any projective plane by removing a line and all the points on it.
+The other way around, we can also obtain a projective plane from an affine plane by adding a line at infinity.
+An advantage of projective coordinates is the fact that formulas involving these kind of coordinate are often simpler and more symmetric than their corresponding Cartesian formulas.
+In addition, projective coordinates can be used to represent points at infinity, although the coordinates to represent these points are finite themselves.
+Assume we have a point $(x, y)$ on the Euclidean plane.
+The triple $(xZ, yZ, Z)$, with $Z \in \mathbb{R} \setminus \{0\}$ is called a \textit{set of projective coordinates} for the point.
+If we multiply this triple by a non-zero scalar we get a new set of projective coordinates for the same point. 
+For example, the Cartesian point $(1, 2)$ can be represented in projective coordinates as $(1, 2, 1)$ but also as  $(2, 4, 2)$. 
+Thus a single point can be represented by an infinite number of projective coordinates, which is not possible using Cartesian coordinates.
+
+To summarize, any point in the projective plane is represented by a triple $(X, Y, Z)$ which are called the projective coordinates of the point, with $X, Y$ and $Z$ being nonzero.
+If the value of $Z$ is unequal to zero, the point represented is the point $(X/Z, Y/Z)$ in the Euclidean plane. If value of $Z$ is zero however, the point represented is the point at infinity. The origin is represented by the triple $(0, 0, 1)$, and the triple $(0, 0, 0)$ is removed and does not represent any point. So far, we assumed the points in projective 2-space.
+In general, points in projective $n$-space are represented by $(n + 1)$-tuples. 
+
+\vspace{5mm} \noindent
+%
+Now we have become familiar with projective coordinates, its time to introduce some alternative representations in which a point on a twisted Edwards curve can be represented.
+The formula for point addition on twisted Edwards curves (which can also be used for point doubling) as shown in \Cref{sec: Twisted Edwards curves} has a cost of $10\bm{\mathrm{M}}$ and $1\bm{\mathrm{S}}$ when the curve parameters are chosen properly \cite{bernstein2007inverted}.
+The cost of a formula is denoted with $\bm{\mathrm{M}}$, $\bm{\mathrm{S}}$, $\bm{\mathrm{D}}$ and $\bm{\mathrm{A}}$ which respectively denote the cost of one multiplication, one squaring, one doubling and one addition. 
+In the upcoming sections, we provide formulas that are \emph{strongly unified}.
+A formula is strongly unified when it works for both the addition and doubling cases without any change.
+A related concept is \emph{completeness}, which means that a formula can handle any input.
+This property is discussed per representation.
+%
+% Strongly Unified -> https://en.wikipedia.org/wiki/Edwards_curve
+% Meaning: "One of the attractive feature of the Edwards Addition law is that it is strongly unified i.e. it can also be used to double a point, simplifying protection against side-channel attack."
+% Extended -> strongly unified: http://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html#addition-add-2008-hwcd-2
+% Complete -> These unified formulae are derived from the addition formulae (1). We deduce from [5] and [1] that these formulae are also complete when d is not a square in K and a is a square in K
+\subsection{Extended twisted Edwards coordinates} \label{subsec: Extended twisted Edwards coordinates}
+A point $(x, y, t)$ with $t=x \cdot y$ on the twisted Edwards curve $E_{E,a,d}$ can be represented as the 4-tuple $(X:Y:T:Z)$ that satisfies the following equations \cite{hisil2008twisted}:
+%
+\begin{align*}
+x &= X/Z \\
+y &= Y/Z \\
+t &= T/Z
+\end{align*}
+%
+We can pass to the projective representation by making use of the following map: $(x, y, t) \mapsto (x:y:t:1)$.
+The identity element is now represented by $(0: 1: 0: 1)$, and the negative of $(X:Y:T:Z)$ is defined as $(-X:Y:-T:Z)$.
+The coordinates of the point $(X:Y:Z:T)$ are called the \emph{extended twisted Edwards coordinates}.
+Addition is defined as $(X_1 : Y_1 : T_1 : Z_1) + (X_2 : Y_2 : T_2 : Z_2) = (X_3 : Y_3 : T_3 : Z_3)$.
+The explicit unified formula for addition can be seen in \Cref{table: extended twisted Edwards explicit formulas alternative representations}, and is complete if $d$ is a non-square in $K$ and $a$ a square in $K$ \cite{hisil2008twisted}.
+Despite the additional overhead of computing the newly introduced auxiliary variable $t$, this new system allows for faster point addition \cite{hisil2008twisted}, as it saves $1\bm{\mathrm{M}}$.
+
+%Inverted -> strongly unified: http://hyperelliptic.org/EFD/g1p/auto-twisted-inverted.html#addition-add-2008-bbjlp
+\subsection{Inverted twisted Edwards coordinates}
+In \cite{bernstein2007inverted}, another representation called \emph{Inverted twisted Edwards coordinates} is introduced for $E_{E,a,d}$ with  $a = 1$. They use the coordinates $(X_1 : Y_1 : Z_1)$ where
+%
+\begin{align*}
+\left( X_1^2 + Y_1^2 \right) Z_1^2 = X_1^2 Y_1^2 + dZ_1^4
+\end{align*}
+%
+with $X_1 Y_1 Z_1 \neq 0$.
+A point on the twisted Edwards curve $E_{E,a,d}$ (with $a = 1$) is now represented as $(Z/X, Z/Y)$.
+The explicit formulas for addition can be seen in \Cref{table: extended twisted Edwards explicit formulas alternative representations}.
+Addition is defined as $(X_1 : Y_1 : Z_1) + (X_2 : Y_2 : Z_2) = (X_3 : Y_3 :  Z_3)$.
+One of the advantages of this representation is that they save one multiplication ($1\bm{\mathrm{M}}$) for each addition, without slowing down doubling or tripling.
+The addition formula is not complete. 
+The requirement $X_1 Y_1 Z_1 \neq 0$ implies that points on the Edwards curve that satisfy $x_1 y_1 = 0$ cannot be represented in inverted Edwards coordinated. 
+As we know, there are four points that satisfy this requirement: the neutral element $(0, 1)$, the point $(0, -1)$ of order 2 and the points $(\pm 1, 0)$ of order 4.
+To be able to handle these case as inputs or outputs, special routines need to used (which we do not describe here).
+
+
+%Projective -> strongly unified: https://hyperelliptic.org/EFD/g1p/auto-twisted-projective.html#addition-add-2008-bbjlp
+\subsection{Projective twisted Edwards coordinates}
+Another way to avoid costly inversions is to work with projective twisted Edwards curves \cite{bern2008twisted}.
+This curve has the following equation:
+%
+\begin{align*}
+	(aX^2 + Y^2) Z^2 = Z^4 + dX^2Y^2
+\end{align*}
+%
+with $Z_1 \neq 0$ and the projective point $(X_1 : Y_1 : Z_1)$.
+This projective point represents the affine point $(X_1 / Z_1, Y_1 / Z_1)$ on  $E_{E, a, d}$.  The explicit formulas for addition and doubling can be seen in \Cref{table: extended twisted Edwards explicit formulas alternative representations}.
+Addition is defined as $(X_1 : Y_1 : Z_1) + (X_2 : Y_2 : Z_2) = (X_3 : Y_3 :  Z_3)$. The formula shown \Cref{table: extended twisted Edwards explicit formulas alternative representations} for the projective case has a cost of $10\bm{\mathrm{M}}$ (which is exactly the same as the original Edwards formula) and is complete.
+However, for certain values of $Z_1$ and $Z_2$, the cost of this formula can be greatly reduced: assuming $Z_1 = 1$ and $Z_2 = 1$, there exist an addition formula using this representation which only requires $6\bm{\mathrm{M}}$.
+%
+\begin{table}
+	\centering
+	\begin{adjustbox}{width=\textwidth}
+		\begin{tabular}{lll}
+			\toprule
+			\textbf{Extended} & \textbf{Inverted} & \textbf{Projective} \\
+			\midrule 
+			{$\!\begin{aligned}
+				A &= X_1 \cdot X_2 \\
+				B &= Y_1 \cdot Y_2 \\
+				C &= T_1 \cdot dT_2 \\
+				D &= Z_1 \cdot Z_2 \\
+				E &= (X_1+Y_1) \cdot (X_2+Y_2)-A-B \\
+				F &= D-C \\
+				G &= D+C \\
+				H &= B-aA \\
+				X_3 &= E \cdot F \\
+				Y_3 &= G \cdot H \\
+				T_3 &= E \cdot H \\
+				Z_3 &= F \cdot G \\
+				\end{aligned}$}
+			& 
+			{$\!\begin{aligned}
+				A &= Z_1 \cdot Z_2 \\
+				B &= d A_2 \\
+				C &= X_1 \cdot X_2 \\
+				D &= Y_1 \cdot Y_2 \\
+				E &= C \cdot D \\
+				H &= C-a D \\
+				I &= (X_1+Y_1) \cdot (X_2+Y_2)-C-D \\
+				X_3 &= (E+B) \cdot H \\
+				Y_3 &= (E-B) \cdot I \\
+				Z_3 &= A \cdot H \cdot I \\
+				\end{aligned}$}
+			&
+			{$\!\begin{aligned}
+				A &= Z_1 \cdot Z_2 \\
+				B &= A_2 \\
+				C &= X_1 \cdot X_2 \\
+				D &= Y_1 \cdot Y_2 \\
+				E &= dC \cdot D \\
+				F &= B-E \\
+				G &= B+E \\
+				X_3 &= A \cdot F ((X_1+Y_1) \cdot (X_2+Y_2)-C-D ) \\
+				Y_3 &= A \cdot G (D-aC) \\
+				Z_3 &= F \cdot G \\
+				\end{aligned}$}
+			\\
+			\bottomrule
+		\end{tabular}
+	\end{adjustbox}
+	\captionof{table}{Explicit strongly unified addition formulas for extended, inverted and projective twisted Edwards curve coordinates \cite{hisil2008twisted}.}
+	\label{table: extended twisted Edwards explicit formulas alternative representations}
+\end{table}
+%

@@ -1,0 +1,28 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{\texorpdfstring{{\fourq} On Hardware}{FourQ On Hardware}} \label{chp: FourQ On Hardware}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont A
+		\normalfont}}{} 
+fast and compact implementation of {\fourq} on FPGAs is presented in \cite{jarvinen2016four}.
+As expected, this implementation is fast: it is significantly faster than any other ECC alternative over a large prime characteristic field.
+In this chapter, we discuss the major components in this hardware design.
+In addition, we describe some of the optimizations that have been applied compared to the original algorithm described in \cite{costello2015fourq}.
+
+\vspace{5mm} \noindent
+%
+As we have seen in \Cref{subsec: Scalar multiplication}, different representations are used within {\fourqs} scalar multiplication (\Cref{algo: FourQ's scalar multiplication}).
+In \cite{jarvinen2016four}, a new representation is introduced.
+As the negative of a precomputed point $(X + Y, Y - X, 2Z, 2dT)$ is given as $(Y - X, X + Y, 2Z, -2dT)$, the values $-2dT$ can be precomputed.
+These values can now be stored using the tuple $(X + Y, Y - X, 2Z, 2dT, -2dT)$.
+This representation is referred to as $\bm{R_5}$.
+During scalar multiplication, the coordinates are read in the right order: they are assembled as  $(X + Y, Y - X, 2Z, 2dT)$ or as $(Y - X, X + Y, 2Z, -2dT)$ for positive and negative digit-columns respectively.
+The advantage of this approach is that there is no need for point negations during the scalar multiplication \cite{jarvinen2016four}.
+This comes however at the cost of storing 8 additional elements in $\mathbb{F}_{p^2}$.
+In the original paper introducing {\fourq}, the recoded matrix representing the output of the scalar recoding consists of digits ($d_i$) and masks ($m_i$).
+The 3 least significant bits of the values of the digit-columns, values $d_i$, are used in the scalar multiplication to select one of the eight points from the precomputed table $T$. 
+The top bits of the digit-columns, values $m_i$, determine whether we add or subtract the element at the current index in our lookup table (which comes down to a simple conversion from representation $\bm{R_5}$ to $\bm{R_2}$).
+However, \cite{jarvinen2016four} denotes the column values used to index the table with $v_i$, and uses $s_i$ (i.e. the sign of the digit-column) to denote the mask values.
+Besides these naming differences, the algorithms presented in the two papers are exactly the same.
+
+\input{sections/fourq_hardware_architecture}

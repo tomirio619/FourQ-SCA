@@ -1,0 +1,18 @@
+% !TeX spellcheck = en_US
+
+\begin{tikzpicture}[->, >=stealth',shorten >=1pt,auto,node distance=3cm]
+\node[state, initial] (idle) {$i$};
+
+\node[state, right of = idle] (fifo read) {$r$};
+
+\node[state, right of = fifo read] (lbus write) {$w$};
+
+%\draw (idle) edge[bend left, above] node[align=left]{\mintinline{text}{hwrdyn = '0'} \\ \mintinline{text}{crrdyn = '0'}} (read);
+
+\draw (idle) edge [loop above, left, out=-60, in=-120, looseness=5] (idle);
+\draw (idle) edge node[align=left, yshift = 15] {\mintinline{text}{hwrdyn = '0'} \\ \mintinline{text}{crrdyn = '0'}} (fifo read);
+\draw (fifo read) edge (lbus write);
+\draw (lbus write) edge[loop above, left, out=120, in=60, looseness=5] node[xshift=30, yshift=10] {\mintinline{text}{cwrdyn = '1'}} (lbus write);
+\draw (lbus write) edge [bend left, below] node[align=left]{\mintinline{text}{cwrdyn = '0'}} (idle);
+
+\end{tikzpicture}

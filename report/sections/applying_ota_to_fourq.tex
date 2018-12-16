@@ -1,0 +1,41 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{\texorpdfstring{Applying online template attacks to \fourq}{Applying online template attacks to FourQ}}
+In \Cref{algo: FourQ's scalar multiplication} in \Cref{chp: FourQ}, we can see the complete scalar multiplication of \fourq.
+In order to retrieve the secret scalar, we need to obtain the $s_i$ and $d_i$ values that are applied in each iteration.
+Recall that in the case of an OTA, the attacker can only capture one \emph{target trace} of the device under attack (i.e. the \emph{target device}).
+In addition, we assume that the attacker knows the input point that belongs to this trace.
+On the attacker's device, the attacker has full control over the implementation (which is the same implementation responsible for the captured \emph{target trace}).
+This means that the attacker can change the scalar, but also the base point in the scalar multiplication.
+We now describe how we apply an OTA to {\fourq}.
+%
+\begin{itemize}
+	\item \textbf{Attacking the first digit-column}. 
+	If we take a look at the actual scalar multiplication algorithm in \Cref{algo: FourQ's scalar multiplication}, we can see that $s_{64}$ determines the sign of the first element taken from the lookup table $T$.
+	Which element is taken from this table is determined by the value $d_{64}$, which is unknown to us in the captured \emph{target trace}.
+	After the initial assignment in \Cref{lst:fourq scalar mult:initial assignment}, the doubling operation of this initial value (i.e. loop at iteration $i = 63$) is done at \Cref{lst:fourq scalar mult:double oper}.
+	This is the first doubling operation we are going to attack.
+	If we take a look at the general scalar recoding algorithm employed by {\fourq} in \Cref{algo: Protected Recoding Algorithm for the GLV-SAC Representation} (in \Cref{chp: FourQ})%
+	\footnote{In the case of \fourq, we have $l = 65$ and $m = 4$.}
+	%
+	, we can see that $b_{64}$ is always assigned a value of one, and that this value is used in the main loop as $s_{64}$.
+	As we already know that the value of $s_{64} = 1$, we are left to guess the value of $d_{64}$, which is a 3-bit value.
+	Our goal in the first `iteration' of our OTA is to try all of the possible $d_{64}$ values (i.e. our templates), such that we can obtain the corresponding power traces of the doubling operations.
+	We then use these templates to find the one that matches best with the corresponding part of the \emph{target trace} (i.e. the first doubling operation).
+	
+	\item \textbf{Attacking the remaining digit-columns}. Once we have found the template (and its corresponding $d_{64}$ value) that matched the best with our \emph{target trace} at the first doubling operation, its time to attack the remaining digit-columns.
+	At \Cref{lst:fourq scalar mult:add oper}, we see that both $s_i$ and $d_i$ determine the new value of the variable $Q$. 
+	In the next iteration $i - 1$, this variable $Q$ is doubled again. To find out which values of $s_i$ and $d_i$ were used, we have to generate all of the possible templates for these values. This are at most 16 possible templates (3 bits for $d_i$ and 1 bit for $s_i$).
+	Note that we need to compare each of the corresponding template traces at the $(i - 1)^\mathrm{th}$ doubling operation to attack the $d_i$ and $s_i$ values used in the addition operation in the $i^\mathrm{th}$ iteration.
+	We are then iteratively constructing the matrix that corresponds to the recoded scalars of {\fourq}.
+	Using these scalar values, we need to invert the scalar decomposition applied to the secret scalar to obtain the `original scalar' of the scalar multiplication that corresponds to the \emph{target trace}.  
+	
+	\item \textbf{Attacking the last digit-column}. We cannot use a doubling operation to attack the last digit-column and sign ($s_{0}$ and $d_0$) in the $0^\mathrm{th}$ iteration, as the main loop ends after this iteration. 
+	There are however two other ways to attack the last digit-column and its corresponding sign. 
+	One way is to use the generated templates for the addition operation involving $d_0$ and $s_0$, and use this operation instead to match the template traces with the target trace.
+	Another way would be to brute force these last values, and see which output of the scalar multiplication gives the correct results.
+\end{itemize}
+%
+As mentioned in \cite{batina2014online}, we can also use the addition operation in the $i^\mathrm{th}$ iteration together with the doubling operation in the $(i - 1)^\mathrm{th}$ iteration to attack digit-column $(s_i, d_i)$.
+In this way, we can increase the chance of choosing the correct template.
+This is however only possible when attacking the digit-columns not used in the first or last iteration (i.e digit-columns $(s_{63}, d_{63})$ up to $(s_{1}, d_{1})$).

@@ -1,0 +1,103 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{Introduction}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont I
+		\normalfont}}{n}
+public key cryptography, the cryptographic system has a pair of keys: the public and private key.
+The public key can be distributed freely, while the private key must remain known only to the owner.
+If this is the case, authentication, encryption and non-repudiation can be achieved.
+We introduce to three major families of public-key algorithms based on their underlying computational problem \cite{paar2009understanding}:
+%
+\begin{itemize}
+	\item \textbf{Integer-Factorization Schemes:} schemes based on the fact that large integers are hard to factor. An example of a scheme that falls into this category is RSA.
+	
+	\item  \textbf{Discrete Logarithm Schemes:} schemes based on the discrete logarithm problem in groups. An example of a scheme that falls into this category is the Diffie-Hellman key exchange.
+	 
+	\item \textbf{Elliptic Curve Schemes}: A generalization of the discrete logarithm algorithm are elliptic curve public-key schemes. An example of a scheme that falls into this category is the Elliptic Curve Diffie-Hellman key exchange (ECDH).
+\end{itemize}
+\parshape=0
+%
+An advantage of Elliptic Curve Cryptography (ECC) is the fact that it can offer the same level of security while using much smaller parameters than non-ECC cryptography.
+This leads to a significant increase in performance and makes these algorithms more suitable for (embedded) systems where amount of memory is limited and where energy consumption should be minimal.
+
+A Field-Programmable Gate Array (FPGA) is an integrated circuit that is designed to be configurable after it has been manufactured.
+FPGAs have become an attractive option for deploying hardware applications in comparison to the well-established Application-Specific Integrated Circuits (ASICs).
+Besides their great flexibility, FPGAs also reduce the development costs and allow for faster prototyping.
+For these reasons, FPGAs have become targets for many ECC implementations \cite{guneysu2008ultra, sasdrich2014efficient, sasdrich2015implementing}.
+
+In \cite{costello2015fourq}, a new elliptic curve with the name {\fourq} is proposed. 
+This curve provides approximately 128 bits of security.
+By combining a four-dimensional decomposition wit the fastest (explicit) twisted Edwards curves formulas available and in combination with the efficient Mersenne prime $p = 2^{127} - 1$, it supports highly-efficient scalar multiplications.
+For generic scalar multiplications, {\fourq} performs four to five times faster than the original NIST P-256 curve \cite{costello2015fourq, gueron2015fast}, and is also faster than curves that were considered as NIST alternatives after its introduction.
+In \cite{jarvinen2016four}, an implementation of {\fourq} on FPGAs is proposed, which was the first time {\fourq} was implemented and deployed on reconfigurable hardware.
+As expected, the speed results of the hardware design of {\fourq} are positive: a speedup factor of 2-2.5 was observed on a Xillinx Zynq-7020 FPGA, in comparison with the corresponding variants of the fastest Curve22519 implementation on the same device.
+The proposed {\fourq} hardware implementation exhibits constant time execution, which protects against timing and simple side channel attacks.
+This enables us to test the resistance of the proposed hardware implementation against other, more advanced, side channel attacks (see \Cref{chp: Side Channel Attacks}).
+
+\section{Related Work}
+Side-channels rely on the relation between information leaked through a side-channel and the secret data related to this information. 
+A frequent used side-channel is the power consumption of a device.
+A simple attack that makes use of this information is simple power analysis (SPA), in which the power consumption of a device is visually examined.
+This enables an adversary to observe the different operations occurring in the execution of the algorithm.
+If the algorithm does not run in constant time, the graph of the power consumption can be used to retrieve the secret data in the execution of the algorithm.
+This type of attack is however hard to perform in practice, as countermeasures against SPA are generally fairly simple to implement.
+A more advanced side-channel attack is differential power analysis (DPA), in which power consumption measurements are statistically analyzed \cite{kocher1999differential}.
+This requires a large number of power traces from the same device using the same secret.
+The more traces we capture, the higher the chances of successfully performing the attack.
+The number of traces required is related to the noise that is inherent to captured power traces.
+DPA requires multiple power traces for the same secret, which is something that cannot always be realized in practice.
+Therefore, new techniques that fall between SPA and DPA have been developed, with one of the most notable ones being template attacks \cite{chari2002template, rechberger2004practical, choudary2013efficient}.
+Template attacks are generally used to attack the secret scalar in a scalar multiplication algorithm.
+This attack only requires one target trace to attack this secret, while numerous template traces are needed in the precomputation phase.
+This type of attack was improved in \cite{batina2014online}, in which Online Template Attacks (OTAs) were introduced and successfully applied.
+OTAs reduce the number of templates and only require one target trace from the device under attack.
+These are horizontal SCAs, in which different parts of the same trace are considered to attack different key bits.
+The OTA applied in the original paper was used to attack different scalar multiplication algorithms that executed in constant-time.
+In addition, different input representations (i.e. affine and projective) for these algorithms were also considered.
+They only attacked the first 5 bits of the scalar due to a problem in their measurement setup.
+However, a complete key retrieval using an OTA was performed in \cite{dugardin2016dismantling}.
+In this paper, the open-source cryptographic library PolarSSL, that can be used in embedded devices, was attacked.
+The implementation was modified to speed up the finite field computations.
+Simply put, they made use of leakage due to a potential overflow in the field multiplication.
+To increase the success rate of the template matching phase, they averaged multiple traces for a single template.
+This increased the correlation value of the correct template from 69\% (when only using 1 template trace) to 99.8\% (when using the average of 100 template traces). 
+The correlation value was calculated using the Pearson correlation coefficient.
+However, the chance of retrieving the 256-bit scalar when using 100 additional template traces per trace still remains low.
+Due to their approach, they were however able to correct and detect errors in attacking a single key-bit with reasonable probability.
+This made full scalar retrieval very likely.
+
+Most of the published power analysis attacks are applied to smart card and microcontrollers.
+\cite{ors2003power} is one of the first papers in which a simple power-analysis attack was applied to FPGAs.
+In this paper, a Montgomery modular multiplier implementation (without the final subtraction) on a FPGA was attacked.
+The attack involved a visual inspection of the computation power trace, which clearly showed the secret key.
+In \cite{standaert2004power}, a DPA attack was applied to a FPGA running a DES implementation. 
+As mentioned in this paper, the physical behavior of FPGAs is different than smart cards.
+Therefore, the original proposal of DPA and its improvements were not directly applicable to FPGAs.
+This was dealt with by generalizing the power model of the attack to account for this difference in physical behavior.
+The proposed techniques were successfully applied to DES, and it was also verified that other block ciphers (including AES Rijndael) were vulnerable to the proposed methods.
+In \cite{guntur2014side}, a new FPGA board called SAKURA-G was introduced that contains two Spartan-6 FPGAs.
+The SAKURA-G board was evaluated by making use of a correlation power analysis (CPA) on an AES circuit with no countermeasures against SCAs.
+Results of this power analysis were compared to the previously introduced standard boards SASEBO-GII and SASEBO-G.
+The CPA on each of the boards was conducted five times without changing the conditions and using the same key and plaintext.
+It was shown that the SAKURA-G board reduced the number of templates needed to successfully perform a CPA by half compared to the other boards \cite{guntur2014side}. 
+In addition, power traces captured using the SAKURA-G board were cleaner compared to the other boards. 
+These results make the SAKURA-G board a good option when you want to verify the protection of hardware designs against side-channel attacks.
+
+In \cite{costello2015fourq}, a fast curve named {\fourq} was introduced that provides a very fast way to perform scalar multiplication.
+An implementation of {\fourq} on microcontrollers with strong countermeasures against side-channel attacks was presented in \cite{liu2017fourq}. 
+The countermeasures in this implementation applied to a variety of side-channel attacks, and should increase the difficulty for an attacker to successfully apply an unprofiled vertical attack.
+The effectiveness of the countermeasures was partially verified by carrying out a DPA evaluation using a discovery board containing the ARM Cortex-M4 microcontroller. 
+
+
+\section{Outline Thesis}
+In this section, we describe the outline for the rest of this thesis.
+In \Cref{chp: SAKURA-G} we provide information about the board that is used to run the hardware implementation of {\fourq} and to capture the power traces necessary to perform the side-channel attack: the Side-channel AttacK User Reference Architecture
+Board (SAKURA-G) \cite{guntur2014side}.
+This includes details about how the data is transmitted from and to the board and which state machines and interfaces are used to realize this.
+Information about elliptic curves is summarized in \Cref{chp: Elliptic Curves}.
+In \Cref{chp: FourQ}, we describe the details of the curve {\fourq}.
+Details regarding the hardware implementation of {\fourq} are discussed in \Cref{chp: FourQ On Hardware}.
+\Cref{chp: Side Channel Attacks} contains details about (online) template attacks.
+The application of an OTA to {\fourq} and the corresponding results are described in \Cref{chp: Attacking FourQ}.
+\Cref{chp: Conclusion and Discussion} concludes and discusses this thesis.

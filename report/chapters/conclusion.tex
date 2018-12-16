@@ -1,0 +1,79 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+
+\chapter{Conclusion \& Discussion} \label{chp: Conclusion and Discussion}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont I
+		\normalfont}}{n}
+this thesis, we attacked a hardware implementation of {\fourq}.
+In order to communicate with a hardware design deployed on a FPGA, the SAKURA-G board contains an USB interface to connect with a PC.
+Values that need to be transferred from and to the FPGA pass through this interface.
+The interface itself is realized by a FTDI chip embedded in the SAKURA-G board.
+The SAKURA-G board comes with example hardware designs of AES for both the main and control FPGAs on the board.
+We based the final design, that wraps the hardware design of {\fourq} on the main FPGA, on these example designs.
+However, these example hardware designs were written in Verilog and were also largely undocumented.
+Therefore, we reviewed and documented the state machines used within these designs in \Cref{chp: SAKURA-G}, and also converted the designs to VHDL.
+Although VHDL is more verbose than Verilog, from our point of view, VHDL has a couple of strengths compared to Verilog: it is strongly typed and also very deterministic.
+We used documents/tutorials that were internally available to document the relevant parts of the available example designs.
+In the same chapter, we also explained how power traces can be captured from the FPGA using the available Teledyne LeCroy oscilloscope.
+To work with the oscilloscope's API using Python, we partly implemented the ActiveDSO interface which exposes the oscilloscope's functionality.
+To store and load the power traces in Inspector, we also implemented the trace set encoding as specified in Appendix K1 of the corresponding software manual \cite{riscure2017inspector}.
+
+In \Cref{chp: Elliptic Curves}, we discussed the concept of (twisted) elliptic curves, and how these can be used to define a discrete-log problem for elliptic curves (ECDLP).
+In the same chapter, we also described several methods that can be used to efficiently compute scalar multiplications when using elliptic curves.
+{\fourq} combines several of these concepts, which resulted in a curve that targets the 128-bit security level \cite{costello2015fourq}.
+These concepts are explained in \Cref{chp: FourQ}.
+Instead of only reviewing the mathematical concepts underlying {\fourq}, we also created a Python implementation which greatly improved our understanding of the curve itself. 
+As {\fourq} has proven to be very fast compared to other (constant-time) alternatives \cite{costello2015fourq}, it was only a matter of time before anyone would come up with a hardware implementation.
+The first hardware implementation of {\fourq} on FPGAs was presented in \cite{jarvinen2016four}.
+That implementation formed the basis for this thesis by subjecting it to side-channel attacks.
+More specifically, we applied an Online Template Attack (OTA) to this implementation, which is an optimized template attack in which the number of templates required is significantly reduced.
+Both template attacks and OTAs are discussed in detail in \Cref{sec: Template Attack} and \Cref{sec: Online Template Attack} respectively.
+Applying an OTA to {\fourq} requires the generation of specific multiscalars.
+If these multiscalars are `valid', we are left with two ways in which we can apply an OTA to the hardware implementation of {\fourq}.
+We can either find the original scalar that, once decomposed, produces the expected digit-columns in the recoded matrix after applying the GLV-SAC algorithm (see \Cref{sec: FourQ's scalar multiplication}). 
+The other way is to change the hardware implementation in such a way that it takes a multiscalar instead.
+As can be read in \Cref{sec: An attempt to inverse the scalar recoding}, inversion of the scalar recoding turned out to be far more complex than expected.
+Therefore, it was decided to take a different approach instead, in which we feed the implementation a multiscalar directly.
+After {\fourq} finishes the decomposition phase, we assign the multiscalar, we received as input, to the corresponding signals that are input to the GLV-SAC algorithm. 
+By making use of this approach, we were still able to generate the power traces for a given template in each iteration of {\fourq}. 
+To make clear whether a decomposed or a regular scalar was expected in the hardware implementation, we introduced a single constant indicating which approach was used.
+This modification does hardly interfere with original design and allowed for fast switching between different types of scalar inputs.
+
+After we were able to generate the template traces, we attacked the hardware implementation of {\fourq} (see \Cref{sec: Matching the templates}).
+In \Cref{sec: Determining the offsets} it is described how we determined the offsets to the doubling and addition operations in the target trace. 
+After applying the OTA (see \Cref{sec: Matching the templates}), it was found that all of the template traces showed really high correlation values among themselves and with the relevant part of the target trace.
+Even after experimenting with different relevant settings of the oscilloscope (i.e. the sampling rate, bandwidth limit and noise filter), it was found that correlation values for the template traces in attacking a single digit-column were very similar.
+This did not change for the first 5 digit-columns we attacked.
+The majority of these correlation values were $\ge99$\%.
+Template averaging (as used in \cite{dugardin2016dismantling}) was also applied, with the number of additional templates ranging from 20, 50 and 100 per template. 
+We also used suggestions as described in both \Cref{subsec: Making the attack more practical} and \Cref{subsec: template attacks preprocessing the traces} in order to improve the results of the template classification.
+Although these methods increased the correlation results to 99.9\%, this increase was observed for all of the templates (including the correct one).
+This did not help us any further compared to the methods we were using previously.
+
+There are a couple of reasons that could explain the observed results.
+First of all, it could be the case that the amount of noise in the acquired waveforms was just too high, making results of the template-matching phase inconsistent.
+Secondly, the hardware implementation we considered makes use of pipelining.
+This means that multiple field computations are performed within the design without waiting for completion of the previous computation.
+This feature could have reduced the distinctiveness of the correct template trace.
+However, it is very hard to tell if this is the case, as this feature is built within the program ROM, which are 8017 lines of hand-optimized routines where none of the instructions are documented (apart from the start and end of major routines).
+
+During the experiments, we also faced some problems with memory limits of Python 3 32-bit
+The default amount of RAM assigned to a process on a Windows 7 machine is 2GB for a 32-bit process.
+Some of our long-running experiments failed because they exceeded this memory limit.
+We eventually found two ways to fix this problem.
+One can either make use of memory-mapped files (as available in Numpy), or one can make use of a 64-bit Python version.
+In the end, we settled with the latter option.
+However, we have to note that changing the code in such a way that memory-mapped files are used is the most elegant solution.
+This is because using memory-mapped files works regardless the amount of RAM (if done properly and the available RAM is at least 2GB).
+We also experienced that generating statistics on OTAs when experimenting with different settings can take quite some time.
+Just attacking the first 5 digit-columns 10 times, and also taking the average of 10 templates to obtain a single template already took a whole day (with a sampling rate of 1GSa/s).
+In the case of 100 additional template traces per trace, this took almost 3 days.
+If we combine these experiments with different settings for the oscilloscope, it can take a very long time to get results on different approaches to the template-matching phase.
+
+It would be a bold statement to conclude that the hardware implementation of {\fourq} considered in this thesis is side-channel resistant.
+For future work, a couple of interesting things can be done with respect to the {\fourq} implementation we considered.
+First of all, it could be determined whether reducing the amount of noise in the template traces, or dealing with this noise in a different way, can improve the classification performance in the template-matching phase.
+There is a lot of literature on how to reduce the noise from power acquisitions, and in this thesis we only used methods that were found after reviewing the tip of the iceberg on literature on this topic.
+Secondly, a different implementation without pipelining could also be considered (for which you probably should contact the authors of {\fourqs} hardware design), as it remains unclear what the impact of this feature is on the power traces.
+Only after these options have been considered, it will become clearer if the hardware implementation of {\fourq} we attacked in this thesis, is in fact protected against OTAs.

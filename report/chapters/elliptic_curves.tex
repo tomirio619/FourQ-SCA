@@ -1,0 +1,14 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{Elliptic Curves} \label{chp: Elliptic Curves}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont I
+		\normalfont}}{n} 
+this chapter, we discuss the basics of elliptic curves.
+We specifically take a look at (twisted) Edwards curves, operations on points on these curves and alternative point representations for these curves.
+Alternative representations provide faster point addition and doubling.
+Multiple of such efficient representations are used internally in {\fourq} (see \Cref{chp: FourQ}).
+For more information on finite fields, we refer to the excellent section on finite fields with respect to AES in \cite[§4.3]{paar2009understanding}.
+
+\input{sections/definition_elliptic_curve}
+\input{sections/faster_ways}

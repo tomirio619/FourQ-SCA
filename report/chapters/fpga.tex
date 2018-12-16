@@ -1,0 +1,63 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\chapter{SAKURA-G} \label{chp: SAKURA-G}
+\lettrine[lhang = 0.4, findent=-30pt, lines=4]{\textbf{
+		\initfamily \fontsize{20mm}{20mm} \selectfont T
+		\normalfont}}{he}
+SAKURA-G board consists of two integrated Spartan-6 FPGAs.
+One of these Spartan FPGAs serves as the main security circuit (XC6SLX75-2CSG484C), while the other one serves as the controller (XC6SLX9-2CSG225C). 
+The main Spartan contains the actual cryptographic hardware design.
+The control Spartan is used to control the main board by changing specific signals received by the main board (e.g. signals indicating whether encryption/decryption has to be performed, or whether the internal state has to be reset). 
+To deploy a hardware design on our FPGA, we need to somehow transfer this design to the board.
+This requires the hardware design to be processed in a specific way:
+% https://www.xilinx.com/itp/xilinx10/isehelp/ise_c_implement_fpga_design.htm
+\begin{enumerate}
+	\item \textbf{Synthesis}: the abstract description of our hardware design (written in for example VHDL or Verilog) is turned into a design implementation of logic gates and lookup tables (LUTs), digital signal processors (DSPs), BRAMs and other elements.
+	
+	\item \textbf{Mapping, Place and Route}: the structures identified in the previous step are mapped to FPGA elements.
+	These components are then routed and the appropriate signals are connected.
+	
+	\item \textbf{Program file}: a file is generated that can be transferred to the FPGA. Depending on the file format, this file either gets flashed to the flash memory on the SAKURA-G board, or is stored in the FPGA non-persistent memory.
+\end{enumerate}
+%
+
+\section{Constraints}
+Constraints are used to guide the design tool on how specific parts of the design should be treated. There are two types of constraints:
+%
+\begin{itemize}
+	\item \textbf{Synthesis constraints} are used by the synthesis tool to optimize specific parts of the hardware description language (HDL) code. 
+	They can be either embedded directly within the VHDL/Verilog code or specified in an external synthesis constraint file.
+	
+	\item \textbf{Implementation constraints} are instructions passed to FPGA implementation tools that specify mapping, placement, timing and other guidelines followed by the implementation tool while processing a FPGA design. These constraints are generally placed in a User Constraint File (\texttt{UCF}). Examples of these constraints are \texttt{LOC} (placement) and \texttt{PERIOD} (timing) constraints. In the hardware design we consider, the majority of the constraints (if not all) are \texttt{LOC} constraints. \texttt{LOC} constraints define where a design element can be placed within a FPGA. 
+\end{itemize}
+%
+
+\section{JTAG}
+JTAG was a standard initially developed by IEEE to solve issues with electronically manufactured boards. 
+It is a standard used to verify designs and circuit board after they have been manufactured.
+In our case, it is used as a programming, debug and probing port. 
+The JTAG programmer/debugger is attached to both the JTAG port and the micro-USB port, which makes it ready to use. 
+We use the JTAG programmer to load hardware designs of the control and main FPGAs to the Spartan FPGAs.
+In general, there are two file formats that can be loaded to a FPGA:
+%
+\begin{itemize}
+	\item \texttt{BIT} file: A \texttt{.BIT} file is a raw storage of the programming bits for the FPGA.
+	It can be loaded to the FPGA via JTAG using for example \texttt{iMPACT} (a Xilinx specific utility).
+	This file format is primarily used for testing a hardware design. The reason for this is, when the board loses its power, the design is ``lost''.
+	
+	\item \texttt{MCS} file: A \texttt{.MSC} file is flashed to flash memory, which means that the contents are not lost when power is lost. The \texttt{.MSC} file can be flashed to flash-memory via JTAG using \texttt{iMPACT}. On power-up, specific configuration signals are used to load the program to the board.
+\end{itemize}
+%
+
+\input{sections/interface_with_board}
+\input{sections/ip_blocks}
+\input{sections/reading_writing_internal_registers}
+\input{sections/capturing_power_traces}
+
+
+
+
+
+
+
+

@@ -1,0 +1,131 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Twisted Edwards curves} \label{sec: Twisted Edwards curves}
+Edwards curves are a family of elliptic curves \cite{edwards2007normal}.
+An Edwards curve over a field $K$ having a characteristic unequal to 2 is defined as follows:
+%
+\begin{align*}
+x^2 + y^2 = 1 + dx^2 y^2
+\end{align*}
+%
+with scalar $d \in K \setminus \{0, 1\}$.
+A more general form which introduces additional parameters also belongs to this family of curves:
+%
+\begin{align*}
+x^2 + y^2 = c^2(1 + dx^2 y^2)
+\end{align*}
+%
+with $c, d \in K$ and $c \cdot d (1 - c^4 \cdot d) \neq 0$.
+The value of $c$ however is often fixed at 1.
+This is also assumed when we introduce the addition and subtraction formula's for Edwards curves.
+Every Edwards curve is birationally equivalent to an elliptic curve in Weierstrass form.
+% https://crypto.stackexchange.com/questions/43013/what-does-birational-equivalence-mean-in-a-cryptographic-context
+When we have geometric objects like elliptic curves, we want to define what it means for these two objects to be ``the same''.
+Given two curves $E_1$ and $E_2$, we say that they are ``the same'' when they are isomorphic. Given two mathematical objects, they are said to be isomorphic if there exists an isomorphism between them. An isomorphism is a structure-preserving map (also called a homomorphism) that has an inverse.
+Besides this way of equating objects, we also have another way of equating them.
+That is by stating they are ``almost the same''.
+This is exactly what a birational equivalence can be used for.
+Two curves $E_1$ and $E_2$ are birationally equivalent when there exists a map $\phi : E_1 \to E_2$ between the two curves which is defined at every point of $E_1$ except for a small subset.
+In addition, there is also an inverse map $\phi^{-1} : E_2 \to E_1$ which is again defined at every point of $E_2$ except for a small subset.
+% https://crypto.stackexchange.com/questions/27842/edwards-montgomery-ecc-with-weierstrass-implementation
+Before we show the birational equivalence between an Edwards curves and an elliptic curve in Weierstrass form, we first introduce a generalization of Edwards curves, which are called twisted Edwards curves \cite{bern2008twisted}.
+Each twisted Edwards curve is a twist of an Edwards curve.
+If we have an elliptic curve $E$ over a field $K$, then there exists a so-called quadratic twist, which is another elliptic curve which is isomorphic to $E$ (over an algebraic closure of $K$).
+Given a field $K$ with $\operatorname{char}(k) \neq 2$, we define a twisted Edwards curve with the following equation:
+%
+\begin{align*}
+E_{E,a,d} : ax^2 + y^2 = 1 + dx^2y^2
+\end{align*}
+%
+with $a,d \in K \setminus \{0\}$ and $a \neq b$.
+Note that a `normal' Edwards curve is just a specific instance of a twisted Edwards curve (it fixes $a = 1$). 
+It can be shown that every twisted Edwards curve is birationally equivalent to an elliptic curve in Montgomery form and vice versa \cite{bern2008twisted}.
+In addition, every Montgomery curve is also birationally equivalent to an elliptic curve in Weierstrass form.
+A Montgomery curve is also a form of an elliptic curve. 
+A Montgomery curve over a field $K$ is defined as follows:
+%
+\begin{align*}
+E_{M, A, B} : Bv^2 = u^3 + Au^2 + u
+\end{align*}
+%
+with $A, B \in K$ and $B(A^2 - 4) \neq 4$.
+As with the curves we have described previously, this curve is generally considered over a finite field $K$ with characteristic unequal to 2 and $A \in K \setminus \{-2, 2\}$ and $B \in K \setminus \{0\}$.
+The corresponding birational maps between these three curves are defined as follows \cite{bern2008twisted}:
+%
+\begin{theorem}[Birational equivalence between Montgomery curves and twisted Edwards curves]
+	Let $E_{E,a,d}$ and $E_{M,A, B}$ be elliptic curves in twisted Edwards form and Montgomery form respectively (with their corresponding definitions as introduced earlier).
+	A twisted Edwards curve $E_{E,a,d}$ is birationally equivalent to the Montgomery curve $E_{M, A, B}$, where:
+	%
+	\begin{align*}
+		A = \frac{2(a + d)}{(a - d)} \text{, and } B = \frac{4}{a - d}
+	\end{align*}
+	%
+	The birational equivalence from $E_{E_{a,d}}$ to $E_{M_{A, B}}$ is given by the following map:
+	%
+	\begin{align*}
+	& \psi : E_{E,a,d} \to E_{M,A,B} \\
+	& (x, y) \mapsto (u,v) = \left( \frac{1 + y}{1 - y}, \frac{1 + y}{(1 - y)x}\right)
+	\end{align*}
+	%
+	with the following inverse:
+	%
+	\begin{align*}
+	& \psi^{-1} : E_{M,A, B} \to E_{E,a,d} \\
+	&  (u,v) \mapsto \left(\frac{u}{v}, \frac{u - 1}{u + 1} \right), a = \frac{A + 2}{B}, d = \frac{A - 2}{B}
+	\end{align*}
+	%
+	The map $\psi$ is not defined at the points $v = 0$ or $u + 1 = 0$ of $E_{M,A,B}$.
+\end{theorem}
+%
+\begin{theorem}[Birational equivalence between Montgomery curves and Weierstrass curves]
+	Let $E_{M,A,B}$ and $E_{a,b}$ be elliptic curves in Montgomery form and in short Weierstrass form respectively (with their corresponding definitions as introduced earlier).
+	The birational equivalence from $E_{M,A,B}$ to $E_{a,b}$ is given by the following map:
+	%
+	\begin{align*}
+	& \psi : E_{M,A,B} \to E_{a, b} \\
+	& (x, y) \mapsto (t,v) = \left( \frac{x}{B} + \frac{A}{B}, \frac{y}{B} \right), a = \frac{3 - A^2}{3B^2}, b = \frac{2A^3 - 9A}{27B^3}
+	\end{align*}
+	%
+	For the inverse map to be valid, a couple of conditions have to be satisfied.
+	Assume we have an elliptic curve $E_{a,b}$ over a base field $\mathbb{F}$, which is a curve over a field that is contained in all other fields (when working over a collection of fields).
+	We can transform $E_{a,b}$ to its corresponding Montgomery form if and only if the order of $E_{a,b}$ is divisible by four and if the following conditions are satisfied \cite{okeya2000elliptic}:
+	%
+	\begin{itemize}
+		\item The equation $x^3 + ax + b$ in $E_{a,b} : y^2 = x^3 + ax + b$ has at least one root in the finite field $\mathbb{F}_p$ of order $p$ with $p \ge 5$ being a prime;
+		
+		\item The number $3\alpha^2 + a$ is a quadratic residue in $\mathbb{F}_p$ (i.e. there exists an integer $x$ such that  $x^2 \equiv 3\alpha^2 + a \pmod{p}$), with $\alpha$ being the root of the equation $x^3 + ax + b = 0$ in $\mathbb{F}_p$.
+	\end{itemize}
+	%
+	If these conditions are satisfied, then we have the following inverse of the map:
+	%
+	\begin{align*}
+	& \psi^{-1} : E_{a, b} \to E_{M,A,B}  \\
+	&  (t,v) \mapsto (s(t - \alpha), sv), A = 3 \alpha s, B = s
+	\end{align*}
+	%
+	with $s = \left( \sqrt{3 \alpha^2 + a} \right)^{-1}$.
+\end{theorem}
+%
+Thus, points on twisted Edwards curves can (under certain conditions) also be represented as points on Weierstrass curves. 
+By choosing an appropriate point to serve as the neutral element, every twisted Edwards curve therefore admits an algebraic group law. We can now define the doubling and addition formulas for twisted Edwards curves.
+Let $P=(x_1, y_1)$ and $Q=(x_2, y_2)$ be points on a twisted Edwards curve $E_{E,a,d}$.
+The addition of the points $P$ and $Q$ on $E_{E.a,d}$ is defined as follows:
+%
+\begin{align*}
+P + Q &= (x_1, y_1) + (x_2, y_2) = (x_3, y_3) \\
+x_3 &= \frac{x_1 y_2 + y_1 x_2}{1 + d x_1 x_2 y_1 y_2} \\
+y_3 &= \frac{y_1 y_2 - a x_1 x_2}{1 - d x_1 x_2 y_1 y_2}
+\end{align*}
+%
+The doubling of a point $P=(x_1, y_1)$ uses exactly the formula as for addition, but can be simplified as follows:
+%
+\begin{align*}
+2P &= (x_1, y_1) + (x_1, y_1) = (x_3, y_3) \\
+x_3 &= \frac{x_1 y_1 + y_1 x_1}{1 + d x_1 x_1 y_1 y_1} = \frac{2 x_1 y_1}{ax_1^2 + y_1^2} \\
+y_3 &= \frac{y_1 y_1 - a x_1 x_1}{1 - d x_1 x_1 y_1 y_1} = \frac{y_1^2 - ax_1^2}{2 - ax_1^2 - y_1^2}
+\end{align*}
+%
+The neutral element is $\mathcal{O} = (0, 1)$.
+The inverse of a point $(x_1, y_1)$ is defined as $(-x_1, y_1)$.
+As mentioned before, we used the same formulas for both addition and doubling, but we were able to simplify these formulas in the doubling case.
+In addition, the addition formula is also complete, which means that there are no exceptional cases when applying this formula.

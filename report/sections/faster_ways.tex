@@ -1,0 +1,268 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Efficient scalar multiplication}
+Gallant--Lambert--Vanstone (GLV) method is a way of speeding up the computation of scalar multiplications on some elliptic curves defined over fields with a large prime characteristic.
+Assume we have an elliptic curve of prime order $n$ with a point $P$.
+By making use of the GLV method, we try to find a decomposition of the scalar multiplication $[k]P$ for $k \in \{1, \ldots, n\}$ into, for example, two scalar multiplications $[k]P = [u]P + [v]Q$.
+This is a multi-exponentiation.
+In general, a multi-exponentiation has the following form:
+%
+\begin{align*}
+\sum_{i = 0}^{i < m} k_i P_i
+\end{align*}
+%
+In the example we gave, the value of $m$ would be 2.
+By rewriting this scalar multiplication, the new scalars $u, v$ only have half of the bitlength compared to the original bitlenght of the scalar $k$.
+Such a scalar multiplication which involves two different points and two different scalars is computed by a \emph{double point multiplication} algorithm.
+One obvious way to compute a double point multiplication is to perform two single-point multiplications. However, multiple algorithms exists that can compute $[u]P + [v]Q$ simultaneously and therefore more efficiently.
+One of these algorithms is called the Straus-Shamir trick, which is an algorithm that can be used for simultaneous point multiplication.
+The trick is in building one sequence of intermediate results that directly converge to the value of $[u]P + [v]Q$ in one execution of a Double-and-Add algorithm (which would be the traditional way of computing the scalar multiplication).
+%https://books.google.nl/books?id=EQXnAwAAQBAJ&pg=PA174&lpg=PA174&dq=straus-shamir+trick+with&source=bl&ots=zaRlEXEtqD&sig=-0HGrNiuvnQ7qRNiu5Ac5_5Rgsg&hl=en&sa=X&ved=0ahUKEwjnvvfLmsHaAhXL-6QKHZ3pCYgQ6AEIXjAI#v=onepage&q=straus-shamir%20trick%20with&f=false
+%http://cacr.uwaterloo.ca/hac/about/chap14.pdf
+The algorithm can be seen in \Cref{algo: Straus-Shamir Trick} , where $\mathcal{S}$ is some set of integers containing 0 and 1 (as presented in \cite{moller2002improved}) and $\mathcal{E}$ an elliptic curve.
+%
+\begin{algorithm}
+	\algorithmicrequire  $u = \sum_{i = 0}^{\ell - 1} u_i 2^i, v = \sum_{i = 0}^{\ell - 1} v_i 2^i, (u_{\ell - 1}, v_{\ell - 1}) \neq (0, 0), (u_i, v_i) \in \mathcal{S}^2, (P, Q) \in \mathcal{E}^2, P \neq \pm Q$.\\
+	\algorithmicensure $R = [u] P + [v] Q$.
+	%	
+	\begin{algorithmic}[1]
+		\State Precompute $W_{i, j} = [i]P + [j]Q, \forall(i, j) \in \mathcal{S} \setminus \{(0, 0)\}$
+		\State Initialize $W_{u_{\ell -1}, v_{\ell - 1}}$
+		\For {$i = \ell - 2$ \textbf{downto} $0$}
+			\State $R = [2]R$
+			\If{$(u_i, v_i) \neq (0, 0)$}
+				\State $R = R + W_{u_i, v_i}$
+			\EndIf
+		\EndFor
+	\end{algorithmic}
+	%
+	\captionof{algorithm}{Double Scalar Multiplication using the Straus-Shamir Trick \cite{rondepierre2013revisiting}.}
+	\label{algo: Straus-Shamir Trick}
+\end{algorithm}
+%
+The Straus-Shamir trick is actually a special case of Straus' algorithm, in which the window size is set to 1.
+This trick reduces the number of doublings by half.
+To further increase the performance, we can make use of signed digit representations and windowing.
+By making use of these methods, we can increase the number of null digits of the scalar, which increases the performance by reducing the number of additions.
+These methods require the scalar to be transformed to another representation, which is called \emph{scalar recoding}.
+We discuss other methods of performing efficient scalar multiplications in the upcoming subsections.
+
+\subsection{Comb method} \label{subsec: Comb method}
+The comb method is a way to perform scalar multiplication.
+The method assumes that the scalar $k$ is represented by a matrix of $w$ rows and $d$ columns.
+During the scalar multiplication, $k$ is being processed columwise. 
+Initially, the binary representation of $k$ is first padded on the left with $dw - t$ zeros, such that its length is $dw$.
+$k$ is now split up into $w$-bit strings $K$ with each of these string having a length of $d$, such that:
+%
+\begin{equation*}
+k = K^{w-1} \Vert \dots \Vert  K^{1} \Vert K^0
+\end{equation*}
+%
+with $\Vert$ denoting the bitwise concatenation operator.
+The bit strings $K^j$ are now written as rows of an \emph{exponent array} \cite{hankerson2006guide}:
+%
+\begin{equation*}
+%
+\begin{bmatrix}
+		K^0 \\
+		\vdots \\
+		K^{w'} \\
+		\vdots \\
+		K^{w - 1}
+\end{bmatrix}
+%
+=
+%
+\begin{bmatrix}
+k_{d-1}^0 & \dots & k_0^0 \\
+\vdots & & \vdots \\
+K_{d-1}^{w'} & \dots & K_0^{w'} \\
+\vdots & & \vdots \\
+K_{d-1}^{w-1} & \dots & K_0^{w - 1}
+\end{bmatrix}
+%
+=
+%
+\begin{bmatrix}
+k_{d-1} & \dots & k_0 \\
+\vdots & & \vdots \\
+K_{(w'+1)d-1} & \dots & K_{w'd} \\
+\vdots & & \vdots \\
+K_{wd-1} & \dots & K_{(w-1)d}
+\end{bmatrix}
+\end{equation*}
+%
+The columns of this exponent array will then be processed one at a time from left to right during the scalar multiplication.
+To speed up the computation of the scalar multiplication, the following points are precomputed \cite{hankerson2006guide}:
+%
+\begin{align*}
+\left[ a_{w - 1}, \ldots, a_2, a_1, a_0 \right]P = a_{w-1} 2^{(w-1)d} P + \ldots + a_2 2^{2d} P + a_1 2^ d P + a_0 P
+\end{align*}
+%
+This precomputation is done for all possible bit strings $(a_{w - 1}, \ldots, a_1, a_0)$.
+The algorithm itself can be seen in \Cref{algo: Fixed-base comb method for point multiplication}.
+%
+\begin{algorithm}
+	\algorithmicrequire Scalar $k = (k_{t-1}, \ldots, k_1, k_0)_2$, window width $w$, bit string size $d = \lceil t / w\rceil$ and $P \in E(\mathbb{F}_p)$.
+	\algorithmicensure $R = [k]P$.
+	%	
+	\begin{algorithmic}[1]
+		\Statex \textbf{Precomputation}
+		\State Compute $[ a_{w - 1}, \ldots, a_2, a_1, a_0 ]P$ for all bit strings  $(a_{w - 1}, \ldots, a_1, a_0)$ with length $w$
+		\State Write $k = K^{w-1} \Vert \dots \Vert  K^{1} \Vert K^0$ and add padding on the left if necessary. Each $K^j$ is a bit string of length $d$. With $K_i^j$ we denote the $i$-th bit of the bit string $K^j$.
+			\State $R \gets \infty$
+		\For {$i = d - 1$ \textbf{downto} $0$}
+			\State $R \gets 2R$
+			\State $R \gets R + \left[ K_i^{w-1}, \ldots, K_i^1, K_i^0 \right] P$
+		\EndFor
+		\State \textbf{Return} $Q$
+	\end{algorithmic}
+	%	
+	\captionof{algorithm}{Fixed-base comb method for point multiplication \cite{hankerson2006guide}.}
+	\label{algo: Fixed-base comb method for point multiplication}
+\end{algorithm}
+%
+
+% NAF: https://crypto.stackexchange.com/a/25229
+\subsection{Interleaving}
+Another way of performing scalar multiplication is by making use of interleaving.
+As we have seen with the Straus-Shamir trick, the precomputed values were obtained by making use of two points. 
+When each precomputed value only involves one point, the associated method of multiple point multiplication is also known as \emph{interleaving}.
+An example of such a method is an interleaving algorithm which makes use of the \textbf{non-adjacent form (NAF)} of a number.
+The NAF of a number is a unique signed-digit representation, which means that non-zero values cannot be adjacent.
+The integer $7$ in NAF would be represented as follows: $(1~0~0~\bar{1})$, where $\bar{1} = - 1$.
+There exist different algorithms to convert a number to NAF, one of which is introduced in \cite{hankerson2006guide}.
+If we want to transform an integer $k$ to NAF, this algorithm will repeatedly divide $k$ by 2. 
+Remainders of $0$ or $\pm 1$ are allowed, but if $k$ is odd, then the remainder $r \in \{-1, 1\}$ is chosen in such a way that the quotient $(k - r) / 2$ is even.
+This makes sure that the next NAF digit is 0.
+The corresponding algorithm can be seen in \Cref{algo: compute NAF}.
+% Two algorithms side by side, see https://tex.stackexchange.com/questions/418185/putting-two-algorithms-side-by-side-with-reasonable-margin
+\begin{figure}
+%
+	\begin{minipage}[t]{7.0cm}%
+		\vspace{2pt}
+		\begin{algorithm}[H]
+			\algorithmicrequire A positive integer $k$.\\
+			\algorithmicensure $\text{NAF}(k)$.
+			%	
+			\begin{algorithmic}
+				\State $i \gets 0$
+				\While{$k \ge 1$}
+				\If{$k$ is odd}
+				\State $k_i \gets 2 - (k \pmod{4})$ \label{lst: Interleaving with NAFs: line change for w-width NAF}
+				\State $k \gets k - k_i$
+				\Else
+				\State $k_i \gets 0$
+				\EndIf
+				\State $k \gets k / 2$
+				\State $i \gets i + 1$
+				\EndWhile
+				\State \textbf{Return} $(k_{i - 1}, k_{i - 2}, \ldots, k_1, k_0)$
+			\end{algorithmic}
+			%
+			\captionof{algorithm}{Computing the NAF of a positive integer \cite{hankerson2006guide}.}
+			\label{algo: compute NAF}
+		\end{algorithm}
+		% @see Guide to Elliptic Curve Cryptography
+	\end{minipage}%
+	%
+	\hfill%
+	%
+	\begin{minipage}[t]{7.0cm}%
+		\vspace{2pt}
+		\begin{algorithm}[H]
+			\algorithmicrequire A positive integer $k$.\\
+			\algorithmicensure $\text{NAF}_w(k)$.
+			%	
+			\begin{algorithmic}
+				\State $i \gets 0$
+				\While{$k \ge 1$}
+				\If{$k$ is odd}
+				\State $k_i \gets k \operatorname{mods}{2^w}$
+				\State $k \gets k - k_i$
+				\Else
+				\State $k_i \gets 0$
+				\EndIf
+				\State $k \gets k / 2$
+				\State $i \gets i + 1$
+				\EndWhile
+				\State \textbf{Return} $(k_{i - 1}, k_{i - 2}, \ldots, k_1, k_0)$
+			\end{algorithmic}
+			%
+			\captionof{algorithm}{Computing the width-$w$ NAF of a positive integer \cite{hankerson2006guide}.}
+			\label{algo: compute NAF-w}
+		\end{algorithm}
+		% @see Guide to Elliptic Curve Cryptography
+	\end{minipage}%
+	%
+\end{figure}
+An interleaving method for computing $\sum_{j = 1}^{v} k^j P_j$ can be seen in \Cref{algo: interleaving with NAFs}.
+%
+\begin{algorithm}
+	\algorithmicrequire  $v$, a set of integers $k^j$, widths $w_j$ and points $P_j$, with $1 \le j \le v$.\\
+	\algorithmicensure $\sum_{j = 1}^{v} k^j P_j$.
+	%
+	\begin{algorithmic}[1]
+		\State Compute $iP_j$ for $i \in \{1, 3 , \ldots, w^{w_j - 1} - 1\}$ for $1 \le j \le v$
+		\State Compute NAF$_{w_j} (k^j) = \sum_{i = 0}^{l_j - 1} k_i^j 2^i$ for $1 \le j \le v$
+		\State $l \gets \text{max} \{l_j : 1 \le j \le v \}$ \Comment{$l_j$ denotes the length of NAF$_{w_j}(k^j)$}
+		\State $k_i^j = 0$ for $l_j \le i < l, 1 \le j \le v$
+		\State $R \gets \infty$
+		\For{$i = l-1$ \textbf{downto} $0$}
+			\State $R \gets 2R$
+			\For{$j = 1$ \textbf{to} $v$}
+				\If{$k_i^j \neq 0$}
+					\If{$k_i^j > 0$}
+						\State $R \gets R + k_i^j P_j$
+					\Else
+						\State $R \gets R - k_i^j P_j$
+					\EndIf
+				\EndIf	
+			\EndFor
+		\EndFor
+		\State \textbf{Return} $R$
+	\end{algorithmic}
+	%
+	\captionof{algorithm}{Interleaving with NAFs \cite{hankerson2006guide}.}
+	\label{algo: interleaving with NAFs}
+\end{algorithm}
+%
+The algorithm makes use of a window method which processes only a particular number of digits at a time.
+
+If $w \ge 2$ is a positive integer, then a \emph{width}-$w$ \emph{NAF} of a positive integer $k$ is an expression $k = \sum_{i = 0}^{l - 1} k_i 2^i$ in which each nonzero coefficient $k_i$ is odd. 
+In addition, $\abs{k_i} < 2^{w - 1}$ with $k_{l - 1} \neq 0$. 
+At most one of any $w$ consecutive digits is nonzero. The length of the width-\emph{w} NAF is $l$. 
+Computation of a $w$-width NAF requires a small change of \Cref{algo: compute NAF} at \Cref{lst: Interleaving with NAFs: line change for w-width NAF}. This can be seen in \Cref{algo: compute NAF-w}.
+Instead of calculating $k_i \gets 2 - (k \pmod{4})$, the computation becomes $k_i \gets k \operatorname{mods}{2^w}$, where $ k \operatorname{mods}{2^w}$ denotes the integer $u$ which satisfies $u \equiv k \pmod{2^w}$ with $-2^{w-1} \le u < 2^{w - 1}$ \cite{hankerson2006guide}.
+
+We now discuss the interleaving algorithm shown in \Cref{algo: interleaving with NAFs}.
+We explain how this algorithm works in the case of double exponentiation (i.e. $v = 2$).
+If we want to calculate $R = [k_0^j]P + [k_1^j] Q$, we first precompute $\{P, 3P, 5P, \ldots, [(2w - 1) / 2]P \}$ and $\{ Q, 3Q, 5Q, \ldots, [(2w - 1)] P \}$ for a choice of window size $w$. 
+We then convert both $k_0^j$ and $k_1^j$ to width-$w$ NAF format. 
+After initializing a point $R$ to the point-at-infinity, we scan the NAFs for $k_0^j$ and $k_1^j$ from left to right. 
+While we process each bit, we double the value of $R$. 
+As we are scanning the NAFs, we choose the subsections of the corresponding NAF to get the largest multiple of $P$ or $Q$.
+This value is present in the tables we precomputed earlier.
+We add this precomputed multiple of $P$ or $Q$ to $R$.
+As the value of $w$ becomes bigger, more time is required for precomputation.
+This also increases the amount of memory needed to store these precomputed tables. 
+However, in the end this leads to less additions in the main double-and-add loop which increases the performance of the algorithm.
+
+Multi-exponentiation as shown in the \emph{Interleaving with NAFs} algorithm can also be done by making use of a morphism (also called a homomorphism).
+A morphism is a structure-preserving map from an mathematical structure to itself.
+An endomorphism is a morphism from a mathematical object to itself.
+An example of an endomorphism is the Frobenius endomorphism, which is a special endomorphism of commutative rings with prime characteristic $p$.
+The Frobenius morphism maps every elements to its $p$-th power.
+If we have commutative ring $R$ with prime characteristic $p$, the Frobenius endomorphism is defined as:
+%
+\begin{align*}
+F(p) = r^p
+\end{align*}
+%
+for all $r \in R$.
+We can make use of homomorphisms in variable point multiplication.
+Assume we want to calculate $[k]p = [u]P + [v]Q$, where $Q = \psi(P)$ and $\varphi$ being a homomorphism.
+Again we have the precomputed table $\{P, 3P, 5P, \ldots, [(2w - 1) / 2]P \}$.
+We can now easily compute the other table by applying $\psi$ to each of the elements in the table we already precomputed.
+This speeds up the precomputation phase.
+This approach is also adopted by {\fourq}, and is described in more detail in \Cref{chp: FourQ}.

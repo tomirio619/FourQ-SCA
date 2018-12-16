@@ -1,0 +1,64 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+
+\section{IP blocks} \label{sec: IP Blocks}
+The hardware design of {\fourq} \cite{jarvinen2016four} (\Cref{chp: FourQ On Hardware}) makes use of a couple of Intellectual Property (IP) blocks provided by Xillinx.
+An IP block is a reusable unit of logic, which is the intellectual property of one party.
+The IP blocks, and their corresponding configurations, used within the {\fourq} hardware design are as follows:
+%
+\begin{itemize}
+	\item \textbf{\mintinline{text}{blk_mem_gen_0}}: \\ Memories \& Storage Elements $\to$ RAMs \& ROMs \& BRAMs $\to$ Block Memory Generator
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{cc}
+			\toprule
+			\textbf{Setting} & \textbf{Value} \\
+			\midrule
+			Memory type & True Dual-Port RAM \\
+			Clocking Options & Common Clock \\
+			Port A/B Write Width & 128 \\
+			Port A/B Write Depth & 256 \\
+			Port A/B Enable & Use ENA/ENB Pin \\
+			Port A/B & Register Port A/B output of Memory Primitives \\
+			All other options & Keep defaults \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	%
+	\item \textbf{\mintinline{text}{blk_mem_gen_1}}: \\ Memories \& Storage Elements $\to$ RAMs \& ROMs \& BRAMs $\to$ Block Memory Generator
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{cc}
+			\toprule
+			\textbf{Setting} & \textbf{Value} \\
+			\midrule
+			Memory type &  Single Port ROM\\
+			Algorithm & Fixed Primitives $\to$ Primitive (Write Port A): 1kx18 \\
+			Port A Write Width & 25 \\
+			Port A Write Depth & 8192 \\
+			Port A Enable & Use ENA Pin\\
+			Port A & Register Port A output of Memory Primitives \\
+			Load Init file & \mintinline{text}{prog_code.coe} \\
+			All other options & Keep defaults \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	%
+	\item \textbf{\mintinline{text}{mult_gen_0}}: \\ Math Functions $\to$ Multipliers $\to$ Multiplier
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{cc}
+			\toprule
+			\textbf{Setting} & \textbf{Value} \\
+			\midrule
+			Port A/B data type & Unsigned \\
+			Port A/B width & 64 \\
+			Multiplier Construction & Use Mults \\
+			Pipeline stages & 7 \\
+			All other options & Keep defaults \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	%
+\end{itemize}
+%

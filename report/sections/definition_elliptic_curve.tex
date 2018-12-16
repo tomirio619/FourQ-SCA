@@ -1,0 +1,115 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Definition}
+An elliptic curve $E$ over a field $K$ in long Weierstrass form is given by the following equation \cite{peter2008elliptic}:
+%
+\begin{align*}
+E: y^2 + a_1 xy + a_3y = x^3 + a_2 x^2 + a_4x + a_6
+\end{align*}
+%
+with $a_i \in K$ for $i \in \{1,\ldots,6\}$.
+To avoid singularities on the curve, it is necessary that both partial derivatives do not vanish simultaneously for each point $(x,y)$ over $\bar{K}$%
+\footnote{$\bar{K}$ denotes the algebraic closure of the field $K$}.
+%
+These partial derivatives are given as follows:
+%
+\begin{align*}
+\pdv{K}{y} &= 2y + a_1 x + a_3, ~~~~~~~ \pdv{K}{x} = 3x^2 + 2a_2x + a_4 - a_1 y
+\end{align*}
+%
+If the characteristic of the coefficient field is not equal to 2 or 3 ($\operatorname{char}(k) \neq 2,3$), we can transform the curve to short Weierstrass form. This short Weierstrass form is given as follows:
+%
+\begin{align*}
+E_{a, b}: y^2 = x^3 + ax + b
+\end{align*}
+%
+where $a,b \in K$. 
+The definition of an elliptic curve requires the curve to be non-singular. 
+This means that it does not have cusps, self-intersections or isolated points. 
+This non-singularity property is satisfied if and only if the discriminant of $E$ is unequal to zero:
+%
+\begin{align*}
+\triangle = -16(4a^3 + 27b^2) \neq 0
+\end{align*}
+%
+All the points on $E$ together with the imaginary point at infinity $\mathcal{O}$ form an additive group $(E, \oplus)$ \cite{peter2008elliptic}:
+%
+\begin{itemize}
+	\item The neutral element in this group is $\mathcal{O}$;
+	\item The inverse of a point $P=(x,y)$ is defined as $-P = (x, -y)$, with $P + (-P) = \mathcal{O}$;
+	\item Given two points $P=(x_1, y_1)$ and $Q = (x_2, y_2)$, we have $P \oplus Q = (x_3, y_3)$ where:
+	%
+	\begin{align*}
+	x_3 &= s^2 - x_1 - x_2 \\
+	y_3 &= s(x_1 - x_3) - y_1
+	\end{align*}
+	%
+	with
+	%
+	\begin{align*}
+	s &= 	\begin{cases}
+				\frac{y_2 - y_1}{x_2 - x_1} 	& \text{if $P \neq \pm Q$ (point addition) }\\
+				\frac{3 x_1^2 + a}{2y_1}		& \text{if $P = Q$ (point doubling)}
+			\end{cases}	
+	\end{align*}
+	%
+\end{itemize}
+%
+If we consider a curve that is defined over the real numbers, we have a nice geometric interpretation of the addition, doubling and inversion operations.
+These interpretations can be seen in \Cref{fig: elliptic curve operations geometric interpretation}.
+%
+\begin{figure}
+	\centering
+	\subfloat[Addition of a point on an elliptic curve over the real numbers.]{
+	\input{img/tikz/elliptic_curve_add}
+	\label{subfig: elliptic_curve_add}
+	}
+	\hspace{0.5cm}
+	\subfloat[Doubling of a point on an elliptic curve over the real numbers.]{
+	\input{img/tikz/elliptic_curve_dbl}
+	\label{subfig: elliptic_curve_dbl}
+	}
+	\hspace{0.5cm}
+	\subfloat[Inversion of a point on an elliptic curve over the real numbers.]{
+		\input{img/tikz/elliptic_curve_inv}
+		\label{subfig: elliptic_curve_inv}
+	}
+	\captionof{figure}{Geometric interpretation of point addition, doubling and inversion when considering an elliptic curve over the real numbers \cite{paar2009understanding}.}
+	\label{fig: elliptic curve operations geometric interpretation}
+\end{figure}
+%
+If we work with elliptic curves, it is important to know the order of the group.
+This order plays a key role in the hardness of the discrete log problem (DLP) that can be constructed with elliptic curves.
+Hasse's theorem states that the number of points of an elliptic curve modulo a prime $p$ is roughly in the range of the prime $p$.
+Each point on the curve also has an order.
+The order of a point $P$ is the smallest positive integer $n$ such that:
+%
+\begin{align*}
+[n]P = \overbrace{P \oplus \ldots \oplus P}^{n \text{ times}} = \mathcal{O}
+\end{align*}
+%
+Some points never add up to $\mathcal{O}$, which gives them an infinite order.
+The order of the neutral element is 1.
+In cryptography, elliptic curves are treated on a given finite field, for example $K = \mathbb{F}_{p}$, with $p$ being a sufficiently large prime number.
+Points on an elliptic curve together with the neutral element $\mathcal{O}$ have cyclic subgroups.
+To make all points on the elliptic curve form a cyclic group, certain conditions have to be met.
+$K = \mathbb{F}_{p}$ with $p > 3$ must hold.
+In addition, the discriminant of the curve has to be non-zero (as mentioned earlier).
+There are also other mathematical properties leading to cryptographic weaknesses that need to be ruled out.
+Due to the complexity of constructing save curves, we often make use of standardized curves in practice.
+Because we know the basic math behind elliptic curves, we can now construct a DLP over these curves \cite{paar2009understanding}:
+%
+\begin{definition}[Elliptic Curve Discrete Logarithm Problem (ECDLP)]
+Given an elliptic curve $E$, a primitive element (also called a generator) $P$ and another element $T$. 
+The discrete logarithm problem is finding the integer $d$, with $1 \le d \le \#(E)$ (with $\#(E)$ being the number of points on the curve) such that:
+%
+\begin{align*}
+\overbrace{P \oplus P \oplus \ldots \oplus P}^{d \text{ times}} = dP = T
+\end{align*}
+%
+\end{definition}
+%
+In cryptosystems, the value of $d$ becomes the private key, while the public key is $T$, where $T=(x_t, y_t)$ is a point on the curve.
+
+\input{subsections/edward_curves}
+\input{subsections/representations}

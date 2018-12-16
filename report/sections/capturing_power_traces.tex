@@ -1,0 +1,135 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Capturing power traces}
+To perform side channel analysis of the {\fourq} hardware design on the FPGA, we need to obtain power traces as {\fourq} is calculating the scalar multiplication.
+A power trace is a collection of samples.
+Each sample is a tuple of voltage and time values.
+Time values are represented in seconds (s), while the amplitude values are represented in volts (v).
+To obtain power traces, the FPGA is connected to the oscilloscope.
+The SAKURA-G is designed with ultra-low noise in mind.
+The board provides a couple of SMA connectors that can be used to monitor the power waveforms. 
+The board also comes with an on-board amplifier, which can used to monitor the amplified waveform (for both the control and main FPGAs).
+To control the acquisition of a power trace, we make use of a trigger.
+The trigger tells the oscilloscope when it should start the acquisition of a waveform (i.e. when the value of the trigger is high) and when this acquisition should stop (i.e. when the oscilloscope's memory is full). 
+The oscilloscope used to display and retrieve the captured power traces is the Teledyne LeCroy - WaveRunner 610Zi.
+To connect with the oscilloscope and retrieve the acquired waveforms, an Ethernet cable (ENET) was employed.
+Teledyne LeCroy oscilloscopes employ a standard Ethernet interface for utilizing the TCP/IP transport layer \cite{automation2017manual}.
+Other methods for making the remote connection exist as well (such as USBTMC, GPIB and LSIB).
+To interface with the oscilloscope, we make use of ActiveDSO, which is an ActiveX control.
+ActiveDSO provides interface drivers and a client library to make the remote connection over ENET, GPIB or USBTMC interfaces.
+It also supports many automation features besides remote control. One can read more about how Teledyne LeCroy oscilloscopes can be controlled by a variety of Windows applications and programming languages in the ActiveDSO's developer guide \cite{activedso2015guide}.
+As the interface with the SAKURA-G board is written in Python, this is also the language of choice for communicating with the oscilloscope.
+In Python, the control object used to communicate with the oscilloscope is instantiated as follows:
+%
+\begin{minted}[xleftmargin=\parindent, tabsize=4, obeytabs, breaklines, fontsize=\footnotesize]{python3}
+command = "LeCroy.ActiveDSOCtrl.1"
+_scope = win32com.client.Dispatch(command)
+\end{minted}
+%
+Using the control object, we can write commands to the oscilloscope and read back the response. To make this possible, we connect to the oscilloscope:
+%
+\begin{minted}[xleftmargin=\parindent, tabsize=4, obeytabs, breaklines, fontsize=\footnotesize]{python3}
+ip_address="192.168.0.1"
+command = "IP:" + ip_address
+_scope.MakeConnection(command)
+\end{minted}
+%
+The IP address should match the IP address set in the settings of the oscilloscope.
+After establishing a connection with the oscilloscope, we can use the control object to send commands to the device.
+ActiveDSO supports two types of commands that can be sent to the oscilloscope using the instantiated control.
+Both traditional IEEE 488.2 (GPIB) commands and the Windows\textsuperscript{\textregistered} Component Object Model (COM) commands can be used.
+Examples of these commands are as follows:
+%
+\begin{minted}[xleftmargin=\parindent, tabsize=4, obeytabs, breaklines, fontsize=\footnotesize]{python3}
+# 488.2 format
+scope.WriteString("<command string>", <Boolean EOI>)
+# Automation Control within the VBS command
+scope.WriteString("app.Shutdown", True)
+\end{minted}
+%
+If End of Identify (EOI) is set to 1 (\mintinline{text}{True}), the command terminates with EOI, and the device interprets the command right away. This is normally the desired behavior.
+If EOI is set to 0 (\mintinline{text}{False}), a command may be sent in several parts with the device starting to interpret the command only when it receives the final part.
+This final command should have set its EOI value set to (\mintinline{text}{True}).
+If a command string contains characters like double quotes ("), the command string should be surrounded with triple quotes.
+Otherwise, Python would interpret the first double quote as the end of the command string, which is unintended.
+
+The oscilloscope offers a variety of interfaces for using devices to input analog or digital signals. 
+A series of connectors arranged on the front of the instrument are used to input analog signals on channels 1-4. 
+We use these analog inputs to connect our FPGA to the oscilloscope. 
+Each of these channels interfaces power probes and completely integrates the probe with the channel. 
+When connected, the probe type is recognized and some setup information, such as input coupling and attenuation, is performed automatically.
+Besides these analog inputs, one can also make use of probes and the LBUS interface.
+In our setup, we only use the analog inputs to capture the power traces of our FPGA.
+To get the waveform from a corresponding channel, we have to call the appropriate ActiveDSO method.
+The available methods for acquiring a waveform can be seen in \cite{activedso2015guide}.
+%
+%\begin{itemize}
+%	\item \texttt{GetByteWaveform}. This method reads raw 8-bit waveform data from the instrument into a byte array. Visual Basic's (unsigned) byte type (values between 0 and 255) is used to store the signed data bytes (values between -128 and 127) that the scope emits. 
+%	To make this work, the signed data is `shifted' by 128, such that it can fit in the unsigned data type. 
+%	This should be remembered when the data is scaled.
+%	The \texttt{GetByteWaveform} method should be used when unscaled 8-bit waveform data is required. 
+%	Processed waveforms are usually 16-bit waveforms. 
+%	To avoid losing precision, they should be transmitted in 16 bit form. 
+%	This can be done by making use of the \texttt{GetIntegerWaveform} method.
+%	
+%	\item \texttt{GetIntegerWaveform}. This method reads raw 16-bit waveform data from the instrument into an integer array. 
+%	This method should be used when unscaled 16-bit waveform data is required. 	
+%	Processed waveforms are usually 16-bit waveforms. 
+%	To avoid losing precision, they should be transmitted in 16-bit format.
+%	Channel waveforms are usually 8-bit waveforms. 
+%	They may be transferred using the \texttt{GetByteWaveform} method. 
+%	This reduces the time and storage requirements.
+%	
+%	\item \texttt{GetNativeWaveform}. This methods reads a waveform from the instrument in its native binary form. 
+%	You can specify whether the data should be transmitted as 16-bit words or as regular 8-bit bytes.
+%	A parameter for this method is also used to specify which entity of the waveform should be transmitted.
+%	Possible values fort his parameter are the descriptor (DESC), the user text (TEXT), the time descriptor (TIME), the data block (DAT1), a second block of data (DAT2) or all entities (ALL).
+%	As mentioned in the previous described methods, processed waveforms are usually 16-bit waveforms and should be captured by setting the word data argument to \mintinline{text}{True}.
+%	Channel waveforms ($C_1, \ldots, C_4$) should be transmitted by setting the word data argument to \mintinline{text}{False}.
+%	It is also possible to restore a waveform captured using the \texttt{GetNativeWaveform}.
+%	This is only possible if the waveform was captured using the (ALL) parameter.
+%	If this is the case, the \texttt{SetNativeWaveformSetNativeWaveform} can be used to restore the waveform.
+%	
+%	\item \texttt{GetScaledWaveform}. This method reads a scaled waveform from the instrument. 
+%	The result is a scaled waveform stored as an array of single-precision floating point values.
+%	If the time value corresponding to each sample amplitude is required, the \texttt{GetScaledWaveformWithTimes} method should be used.
+%	
+%	\item \texttt{GetScaledWaveformWithTimes}. This method reads a scaled waveform from the instrument and stores the time and amplitude at each sample point.
+%	The result is a scaled waveform stored as a two-dimensional array of single-precision floating point values. In the first column, the time values are stored. In the second column, the amplitude values are stored.
+%	If the time value corresponding to each sample amplitude is not required, one can use the \texttt{GetScaledWaveform} method.
+%	
+%\end{itemize}
+%%
+
+%If 16-bit words are send from the oscilloscope, we have to take the order in which the bytes for a single word are stored into account.
+%To determine which byte order the oscilloscope is currently using waveform data transmission, we can make use of the \mintinline{text}{COMM_ORDER} command. 
+%This command can be used to either ask for the current communication order or to set the communication order.
+%When setting the communication order using the \mintinline{text}{COMM_ORDER} command, we use the following command syntax: \mintinline{text}{COMM_ORDER <mode>}, with \mintinline{text}{<mode> := {HI, LO}}.
+%If \mintinline{text}{HI} is used, waveform data is sent with the most significant byte (MSB) first (i.e. big endian). 
+%If \mintinline{text}{LO} is used, waveform data is sent with the least significant byte (LSB) (i.e. little endian).
+%As we can read in the Remote Control Manual, data should be sent with the LSB first for Intel-based computers.
+%For Motorola-based computers, data should be sent with the MSB first, the default at power-up. Data written to the instrument's hard disk, USB, or floppy always remains in LSB first format (the default DOS format). You cannot use the \mintinline{shell}{COMM_ORDER} command in these cases, since it is only meant for data sent using GPIB and RS-232-C ports.
+%
+%Before acquiring a waveform using these methods, we can specify some additional information about the transfer of these waveform. 
+%This is done by making use of the \texttt{SetupWaveformTransfer}.
+%This method is used to configure various parameters that control the transfer of waveforms from the instrument to the PC.
+%These arguments are as follows:
+%%
+%\begin{itemize}
+%	\item \mintinline{text}{first_point}: An integer that describes the first point to transfer. A value of 0 indicates the first point.
+%	
+%	\item \mintinline{text}{sparsing}: An integer that describes the sparsing factor. This value indicate which values in the sample should be skipped.
+%	A value of 0 indicates that all points should be transfered, while a value 2 means that every other point should be skipped.
+%	
+%	\item \mintinline{text}{segment_no}: An integer that specifies which segment number to transfer. A value of 0 indicates that all segments should be transferred.
+%\end{itemize}
+%%
+%For the majority of these cases, the default values for these settings will be sufficient. This means that: all points are transferred, starting from the first point and transferring all segments.
+
+
+
+
+
+
+
+

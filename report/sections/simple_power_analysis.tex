@@ -1,0 +1,12 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Simple Power Analysis}
+In Simple Power Analysis (SPA) attacks, power consumption measurements are collected during a cryptographic operation and are directly interpreted.
+The attacker tries to derive the key bits more or less directly from the given trace \cite{mangard2008power}. 
+This often requires detailed knowledge of the algorithm's underlying implementation executed by the device under attack. 
+In the most extreme case, only one power trace can be recorded and used to perform the attack.
+This is what we call a \emph{single-shot SPA attack}.
+In \emph{multiple-shot SPA attacks}, the attacker is able to record multiple power traces for the same plaintext, or has the ability to supply different plaintexts.
+For these attacks to work, the key used in the cryptographic algorithm must have a significant impact on the power consumption of the device under attack.
+The impact of the key on the power consumption could be either directly or indirectly.
+

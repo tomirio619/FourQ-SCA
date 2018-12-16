@@ -1,0 +1,238 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\subsection{Scalar multiplication} \label{subsec: Scalar multiplication}
+In this subsection, we describe how {\fourq} computes a scalar multiplication.
+To obtain an efficient algorithm that also runs in constants time, the general recoding algorithm presented in \cite{faz2015efficient} is adopted.
+Scalar recoding is a way to recode a scalar to a representation that exhibits a regular pattern.
+This makes the scalar multiplication more resistant against simple side-channel attacks.
+Another way to increase this resistance is to make use of strongly unified formulas. 
+In scalar multiplication, strongly unified formulas are formulas that can be used for both addition and doubling.
+However, use of these formulas is often expensive and not very efficient.
+In the paragraphs below, we discuss a couple of recoding algorithms and their usage in scalar multiplication algorithms.
+
+\paragraph{Signed All-Bit-Set (SAB-set)}
+A scalar multiplication algorithm that makes use of SAB-set is introduced in \cite{hedabou2005countermeasures}.
+Assume we have the scalar $k$, the algorithm first replaces every zero bit of scalar $k$ by 1 or $-1$.
+This replacement depends on the neighbor bits. Based on the parity of $k$, we proceed as follows:
+%
+\begin{itemize}
+	\item $k$ \textbf{is odd}. We set $k' = k + 2$. If $k_i$ is the first bit that is equal to 0, we replace $k_i$ by $k_i + 1 = 1$ and $k_{i - 1}$ by $k_{i - 1} - 2 = -k_{i - 1} = -1$. These changes do not change the actual value of $k$. 
+	The process described above is iteratively performed for every time we have a $k_i$ equal to 0 and $k_{i - 1}$ being equal to 1.
+	
+	\item $k$ \textbf{is even}. We make the value odd by setting $k' = k + 1$ and performing the same steps as in the odd case.  
+\end{itemize}
+%
+The scalar multiplication $kP$ for an even scalar can now be computed by $k'P - P$.
+For an odd scalar, the calculation becomes $k'P - 2P$.
+There is a reason why the value of the odd scalar is initially incremented by 2 (i.e. the assignment $k' = k + 2$).
+If this is not done, the algorithm described above could be vulnerable to a Simple Power Analysis (SPA) attack, as it would behave differently for even and odd scalar values.
+In order to make the algorithm itself also resistant against SPA attacks, the algorithm is modified to touch every bit, independent of its value.
+The corresponding algorithm \cite[Algorithm 3]{hedabou2005countermeasures} that employs this modified binary representation now yields a SPA-resistant comb method.
+
+\paragraph{Least Significant Bit - Set (LSB-Set)}
+In \cite{feng2005efficient}, a signed representation called the LSB-set is introduced.
+This representation was used to protect the comb method, which we discussed in \Cref{subsec: Comb method}.
+We define $\mathbb{K}_i = \left[ K_i^{w-1}, \ldots, K_i^1, K_i^0 \right]$, which are the points used in the precomputation of the comb method.
+The method works by transforming all of the comb bit-columns $\{\mathbb{K}_i \}$ of a scalar $k$ into a non-zero representation.
+This is quite similar to the HPB approach described in \cite{hedabou2004comb}.
+However, LSB-set approach differs from HBP because every produced $K_i '$ is a signed odd number.
+In particular, the LSB-set method generates $K_i^{'0} \in \{1, \bar{1}\}$ and $K_{i}^{'j} \in \{0, K_i^{'0} \}$, $j \neq 0$ for each bit-column $\mathbb{K}_i^{'} \equiv \left[  K_{i}^{' w-1}, \ldots, K_{i}^{'1}, K_{i}^{'1}, K_{i}^{'0} \right]$ with $\bar{1}$ defined as $-1$ \cite{feng2005efficient}. The algorithm can be seen in \Cref{algo: Signed Odd-Only Comb Recoding Algorithm for an Odd Scalar} for a window width $w \ge 2$ and $d = \lceil \frac{n + 1}{w}\rceil$.
+%
+\begin{algorithm}
+	\algorithmicrequire An odd $n$-bit integer $k = \sum_{i = 0}^{n - 1}b_i 2^i$ with $b_i \in \{0, 1\}$. \\
+	\algorithmicensure $k = \sum_{i = 0}^{wd - 1} b'_i 2^i \equiv K_i^{w-1} \Vert \ldots \Vert K_i^1 \Vert K_i^0$, with $k$ having a length of $dw$ (add padding zeros to the left if necessary). Each $K^{'j}$ is a binary string of length $d$. Let $K_r^{'j}$ denote the $r$-th bit of $K^{'j}$ (i.e $K_r^{'j} \equiv b_{jd + r}^{'}$).
+	We define $\mathbb{K}_i = \left[ K_i^{w-1}, \ldots, K_i^1, K_i^0 \right]$.  The output will satisfy $K_r^{'0} \in \{1, \bar{1}\}$ and $K_r^{'j} \in \{0, K_r^{'0} \}$ for $j \neq 0$ and $0 \le r < d$.
+	%	
+	\begin{algorithmic}[1]
+		\For{$i=0$ \textbf{to} $d-1$}
+			\If{$b_i = 1$}
+				\State $b'_i \gets 1$
+			\Else 
+				\State $b'_i \gets 1$
+				\State $b'_{i - 1} \gets \bar{1}$
+			\EndIf
+		\EndFor
+		\State $e \gets \left\lfloor \frac{k}{2^d} \right\rfloor$
+		\State $i \gets d$
+		\While{$i < wd$}
+			\If{$e$ is odd \textbf{and} $b'_{i \pmod{d}} = \bar{1}$}
+				\State $b'_i \gets \bar{1}$
+				\State $e \gets \lfloor \frac{e}{2} \rfloor + 1$
+			\Else
+				\State $b'_i \gets e \pmod{2}$
+				\State $e \gets \lfloor \frac{e}{2}\rfloor$
+			\EndIf
+			\State $i \gets i + 1$
+		\EndWhile
+	\end{algorithmic}
+	%	
+	\captionof{algorithm}{Signed Odd-Only Comb Recoding Algorithm for an Odd Scalar \cite{feng2005efficient}.}
+	\label{algo: Signed Odd-Only Comb Recoding Algorithm for an Odd Scalar}
+\end{algorithm}
+%
+The recoding algorithm works by first converting each of the $d$ bits in the least significant bit string $K_r^{'0}$ to either $1$ or $\bar{1}$.
+This is done by making use of the fact that $1 \equiv 1\bar{1}\dots \bar{1}\bar{1}$ and that the value of the least significant bit is one for an odd scalar $k$. In other words, the least significant bit in each bit-column $K'_r$ for $0 \le r < d$ is either $1$ or $\bar{1}$ \cite{feng2005efficient}.
+Once this is done, the algorithm proceeds by processing each bit at a time, starting from the lowest bit and moving towards the highest bit.
+The lowest bit is in this case the $d$-th bit.
+If the current bit being processed is 1 and has a sign that is different from the LSB in the same $\mathbb{K}'_r$, this bit is set to $\bar{1}$.
+The value represented by the remaining bits is incremented by 1 to make sure that the value of $k$ remains unchanged.
+This process generates $l = wd$ bits $\{b'_i\}$.
+These bits represent an odd $n$-bit integer $k$. 
+
+\paragraph{GLV-SAC}
+The recoding algorithm introduced in \cite{faz2015efficient} is called GLV-Based Sign-Aligned Column (GLV-SAC).
+This algorithm forms the basis for the scalar recoding used in {\fourq}.
+It is a variant of the LSB-set recoding (as described earlier).
+Before we describe how this recoding was tailored to {\fourq}, we describe how it was originally proposed.
+Let $k_s = \{k_0, k_1, \ldots k_j, \ldots , k_{m - 1} \}$ be a set of positive sub-scalars in the GLV setting with dimension $m$.
+Simply put, the GLV-SAC recoding scheme uses one of the subscalars of the $m$-GLV decomposition, lets say $k_J \subset k_s$ represented in \textit{signed nonzero form}, to act as the ``sign-aligner''.
+This means hat $k_J$ determines the sign of all the digits of the remaining sub-scalars based on their relative position.
+Signed nonzero form is a representation of an integer $k$ in which $k$ is represented as a sequence of bit strings different from zero.
+This is done by modifying the binary representation of $k$ such that all zero bits are eliminated and only bits equal to 1 or $-1$ (i.e $\bar{1}$) are used.
+The GLV-SAC representation has the following properties \cite{faz2015efficient}:
+%
+\begin{enumerate}[(i)]
+	\item The length of the digit representation of every sub-scalar $k_j \in k_s$ is fixed. This length is defined by $l = \lceil \log_2 r/m \rceil + 1$, where $r$ is the prime subgroup order.
+	
+	\item There is exactly one odd sub-scalar expressed by a signed nonzero representation $k_J = ( b_{l - 1}^J, \ldots, b_0^J )$, with all of the digits $b_i^J \in \{1, -1 \}$ for $0 \le i < l$.
+	
+	\item The sub-scalars $k_j \in k_s \setminus \{k_J\}$ are expressed by the signed representations $(b_{l - 1}^j, \ldots, b_0^j)$ such that $b_i^j \in \{0, b_i^J\}$ for $0 \le i < l$.
+\end{enumerate}
+%
+The properties (i) and (ii) guarantee a constant time execution.
+This is independent of the value of the scalar $k$ \cite{faz2015efficient}.
+The precondition that $k_J$ should be odd enables the conversion from any integer to a full signed nonzero representation.
+This conversion is based on the equivalence $1 \equiv 1 \bar{1} \ldots \bar{1}$.
+Note that we can lift the restriction of choosing an odd sign-aligner $k_J$ by transforming the sign-aligner to an odd number and make the corresponding correction in the end (see \cite[§3.1]{faz2015efficient}).
+The restriction of having only positive sub-scalars can also be lifted (see \cite[§3.3]{faz2015efficient}).
+
+We now describe the recoding algorithm in more detail.
+We assume that each (positive) sub-scalar $k_j$ is padded with zeros to the left.
+Each of the sub-scalars must now have the fixed length $l = \lceil \log_2 r/m \rceil + 1$. 
+After choosing an appropriate sign-aligner $K_j$ (which could be any odd $k_j$), the sub-scalar $k_J$ is recoded to signed nonzero form $b_i^J$ by making use of the equivalence $1 \equiv 1\bar{1} \ldots \bar{1}$.
+This means that every sequence of $00\ldots 01$ is replaced by the sequence $1\bar{1}\ldots \bar{1}\bar{1}$ with the exact same number of digits.
+The remaining sub-scalars are also recoded such that all of the output digits at position $i$ are in the set $\{0, b_i^J\}$. If we arrange this result in a matrix, we can see that digits in the same column either have a value of zero or share the same sign as the corresponding digit of the sign-aligner.
+Now we can precompute all the possible multiples of the base point that correspond to a \emph{digit-column},
+and perform the comb fixed-base scalar multiplication by scanning the digit-columns from left to right in the recoded matrix. 
+By definition, every digit-column $i$ is expected to be nonzero with any of the possible combinations $[b_i^{m - 1}, \ldots, b_i^2, b_i^1, b_i^0]$, where $b_i^0 \in \{1, -1\}$ and $b_i^j \in \{0, b_i^0\}$ for $1 \le j < m$ and $0 \le i < l$ \cite{faz2015efficient}.
+Therefore, each iteration of the scalar multiplication will consists of a point addition and doubling with a precomputed value selected using the corresponding value of the current digit-column.
+This achieves a constant regular execution that is protected against simple SCAs.
+The general algorithm for recoding a scalar into GLV-SAC representation can be seen in \Cref{algo: Protected Recoding Algorithm for the GLV-SAC Representation}.
+%
+\begin{algorithm}
+	\algorithmicrequire $m$ $l$-bit positive integers $k_j = (k_{l - 1}^j, \ldots, k_0^j)_2$ for $0 \le j < m$ and an odd sign-aligner $k_J \in \{k_j\}^m$, where $l = \lceil \log_{2} r/m \rceil + 1$. with $m$ being the GLV dimension and $r$ the prime subgroup order. \\
+	\algorithmicensure $(b_{l - 1}^j, \ldots, b_0^j)_{\textsc{GLV-SAC}}$ for $0 \le j < m$, where $b_i^J \in \{0, 1\} $, and $b_i^j \in \{0, b_i^J\}$ for $0 \le j < m$ with $j \neq J$.
+	%	
+	\begin{algorithmic}[1]
+		\State $b_{l - 1} = 1$
+		\For{$i = 0$ \textbf{to} $(l - 2)$} \label{lst:scalar recoding general:signed-nonzero start}
+			\State $b_i^J = 2k_{i + 1}^J - 1$ \label{lst:scalar recoding general:signed-nonzero oper}
+		\EndFor \label{lst:scalar recoding general:signed-nonzero end}
+		\For{$j = 0$ \textbf{to} $(m - 1), j \neq J$}
+			\For{$i = 0$ \textbf{to} $(l - 1)$}
+				\State $b_i^j = b_i^J \cdot k_0^j$ \label{lst:scalar recoding general:digit column value}
+				\State $k_j = \lfloor k_j / 2\rfloor - \lfloor b_i^j / 2 \rfloor$ \label{lst:scalar recoding general:scalar update}
+			\EndFor
+		\EndFor
+		\State \textbf{Return} $(b_{l-1}^j, \ldots, b_0^j)_{\textsc{GLV-SAC}}$ for $0 \le j < m$
+	\end{algorithmic}
+	%
+	\captionof{algorithm}{Protected Recoding Algorithm for the GLV-SAC Representation \cite{faz2015efficient}.}
+	\label{algo: Protected Recoding Algorithm for the GLV-SAC Representation}
+\end{algorithm}
+%
+The recode algorithm used by {\fourq} fixes some parameters.
+This can be seen in \Cref{algo: FourQ multiscalar recoding reader-friendly}.
+Note that we assume that $k_0$ acts as the sign-aligner in this algorithm, as its value is assumed to be odd.
+On input of a given multiscalar $(a_1, a_2, a_3, a_4)$ (produced by the steps described in \Cref{subsec: Scalar decomposition}), the algorithm outputs an equivalent multiscalar $(b_1, b_2, b_3, b_4)$ with $b_j = \sum_{i = 0}^{64} b_j [i] \cdot 2^i$ for $b_j[i] \in \{0, b_i^J \}$ and $j = 1,2,3,4$.
+An example of how the recoding algorithm works and what the intermediate results are for the corresponding scalar multiplication can be seen in \cite[Example 1]{faz2015efficient}.
+%
+\begin{algorithm}
+	\algorithmicrequire Four positive integers $a_j = (0, a_j[63], \ldots, a_j[0])_2 \in \{0, 1\}^{65}$ with values less than $2^{64}$ for $1 \le j \le 4$ and with $a_1$ being odd. \\
+	\algorithmicensure Four integers $b_j = \sum_{i=0}^{64} b_j[i] \cdot 2^i$ with $b_j [i] \in \{-1, 0, 1\}$.
+	%	
+	\begin{algorithmic}[1]
+		\For{$i = 0$ \textbf{to} $64$}
+			\If{$i \neq 64$}
+				\State $b_1[i] = 2 a_1 [i + 1] - 1$
+			\EndIf			
+			\For{$j = 2$ \textbf{to} $4$}
+				\State $b_j[i] = b_1[i] \cdot a_j[0]$
+				\State $a_j = \lceil a_j / 2\rceil - \lceil b_j[i]/2\rceil$
+			\EndFor
+		\EndFor
+		\State \textbf{Return} $(b_j[64], \ldots, b_j[0])$ for $1 \le j \le 4$
+	\end{algorithmic}
+	%
+	\captionof{algorithm}{{\fourq} multiscalar recoding reader-friendly \cite{faz2015efficient}.}
+	\label{algo: FourQ multiscalar recoding reader-friendly}
+\end{algorithm}
+%
+The implementer-friendly version of the multiscalar recoding algorithm shown in \cite[Algorithm 1]{costello2015fourq} makes use of some optimizations mentioned in \cite{faz2015efficient}.
+If we take a look at \Cref{lst:scalar recoding general:signed-nonzero oper} in \Cref{algo: Protected Recoding Algorithm for the GLV-SAC Representation}, we can see that a value of $k_{i + 1}^J = 0$ makes the corresponding $b_i^J$ negative, while a value of $k_{i + 1}^J = 1$ makes it positive.
+We know that these values indicate the sign of digit-column $i$.
+We can now rewrite \Cref{lst:scalar recoding general:signed-nonzero oper} to $b_i^J = k_{i + 1}^J$, if we assume that $b_i^J = 0$ indicates a negative digit-column and $b_i^J = 1$ indicates a positive one (for $0 \le i < l$).
+This allows for some additional (efficient) simplifications that can be seen in the implementer friendly version \cite[Algorithm 1]{costello2015fourq}.
+
+\paragraph{Fast addition formulas}
+As we have seen in \Cref{sec: Alternative representations for fast computations}, there are number of alternative representations that can be used to speed up point addition and doubling in elliptic curve cryptography.
+In \cite{costello2015fourq}, the fastest explicit addition formulas on the twisted Edwards curve $\mathcal{E}$ were reviewed to see which corresponding representations are used in these formulas.
+It was found that the fastest formulas were due to Hisil et al \cite{hisil2008twisted}. 
+They make use of extended twisted Edwards coordinates (see \Cref{subsec: Extended twisted Edwards coordinates}) to represent the affine point $(x,y)$ on $\mathcal{E}$ by a projective tuple of the form $(X : Y : Z : T)$, where $Z \neq 0, x = X/Z, y = Y/Z$ and $T = XY/Z$.
+However, there exist other alternative representations that offer advantages in certain scenarios with respect to implementation friendliness.
+One of these representations is the one used in \cite[§3.2]{hamburg2012fast}.
+In this paper, they make use of the tuple $(X, Y, Z, T_a, T_b)$ to represent a point in twisted Edwards coordinates.
+In this representation, $T_a$ and $T_b$ are any field elements such that $T = T_a \cdot T_b$.
+After a study of alternative coordinate representations, a couple of representations were found that could be used to speed up the scalar multiplication in {\fourq} \cite[§3.2]{costello2015fourq}.
+These alternative representations can be seen in \Cref{table: alternative representations extended twisted Edwards coordinates}. 
+In \Cref{table: twisted Edwards coordinates summary}, a summary of the conversion, addition and doubling functions used in the scalar multiplication of {\fourq} is given. 
+The conversion functions are used to convert from a given representation to another, while the addition and doubling functions do what their name implies. 
+%
+\begin{table}
+	\centering
+	\begin{tabular}{cc}
+		\toprule
+		\textbf{Representation} & \textbf{Representation of} $\bm{(X : Y : Z : T)}$ \\
+		\midrule
+		\bm{$R_1$} &  $(X, Y, Z, T_a, T_b)$ \\
+		\bm{$R_2$} &  $(X + Y, Y - X, 2Z, 2dT)$ \\
+		\bm{$R_3$} & $(X + Y, Y - X, Z, T)$ \\
+		\bm{$R_4$} & $(X, Y, Z)$ \\
+		\bottomrule
+	\end{tabular}
+	\captionof{table}{Different point representations for a point in extended twisted Edwards coordinates  \cite{costello2015fourq}.}
+	\label{table: alternative representations extended twisted Edwards coordinates}
+\end{table}
+%
+\begin{table}
+	\centering
+	\begin{tabular}{cccccccc}
+		\toprule
+		\textbf{Function} & \textbf{Input} & \textbf{Representation(s)}& \textbf{Output} & \textbf{Representation} & \multicolumn{3}{c}{\textbf{Cost}} \\
+		& & & & & \textbf{M} & \textbf{S} & \textbf{A} \\
+		\bottomrule
+		\texttt{R1toR2} & $P$ & \bm{$R_1$} & $P$ & \bm{$R_2$} & 2 & - & 4 \\
+		\texttt{R1toR3} & $P$ & \bm{$R_1$} & $P$ & \bm{$R_3$} & 1 & - & 2 \\
+		\texttt{R2toR4} & $P$ & \bm{$R_2$} & $P$ & \bm{$R_4$} & - & - & 2 \\
+		\midrule
+		\texttt{ADD\_core} & $P, Q$ & \bm{$R_3, R_2$} & $P+Q$ & \bm{$R_1$} & 7 & - & 4 \\
+		\texttt{ADD} & $P, Q$ & \bm{$R_1, R_2$} & $P+Q$ & \bm{$R_1$} & 8 & - & 6 \\
+		\texttt{DBL} & $P$ & \bm{$R_4$} & $[2]P$ & \bm{$R_1$} & 3 & 4 & 6 \\
+		\bottomrule
+	\end{tabular}
+	\captionof{table}{Summary of the conversion, addition and doubling functions. In addition, it is also shown what the cost of these operations are and what the input and output representations for each of these functions are \cite{costello2015fourq}.}
+	\label{table: twisted Edwards coordinates summary}
+\end{table}
+%
+The usage of these representations is described in the proof of the exact operation counts for {\fourq}.
+The corresponding theorem states that the scalar multiplication $[m]P$ with a positive $m$ less than $2^{256}$ for every point $P \in \mathcal{E}(\mathbb{F}_{p^2}) \left[ N \right]$ is correctly computed as a fixed sequence of exactly $1\bm{\mathrm{I}}$, $842\bm{\mathrm{M}}$, $842\bm{\mathrm{S}}$, $950.5\bm{\mathrm{A}}$ and a fixed number of table lookups and integer operations \cite{costello2015fourq}. 
+Exact operation counts are not provided, as they depend on the underlying architecture.
+In addition, specific trade-offs can be made for particular architectures, which results in different operation counts than the one mentioned previously \cite{costello2015fourq}.
+
+We take a look at \Cref{algo: FourQ's scalar multiplication} (\Cref{sec: FourQ's scalar multiplication}), which describes the complete scalar multiplication procedure of {\fourq}.
+Before the lookup table is precomputed at \Cref{lst:fourq_scalar_mult:precompute table}, we convert to a different representation. 
+We take $P \gets \texttt{R1toR2}(P), \phi(P) \gets \texttt{R1toR3}(\phi(P)),\psi(P) \gets \texttt{R1toR3}(\psi(P))$ and $\psi(\phi(P)) \gets \texttt{R1toR3}(\psi(\phi(P)))$.
+To calculate the result of \Cref{lst:fourq_scalar_mult:precompute table}, we need 7 executions of \texttt{ADD\_core}, in which the output of these additions are in $\bm{R_1}$.
+\Cref{lst:fourq scalar mult:initial assignment} involves one point negation.
+In addition, the initial value of $Q$ is extracted to be used in the first iteration of the main loop later on.
+This value of $Q$ is then converted to $\bm{R_4}$ using the conversion function \texttt{R2toR4}.

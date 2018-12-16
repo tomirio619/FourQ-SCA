@@ -1,0 +1,20 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\begin{abstract}
+Electronic devices can perform all sorts of operations which we can analyze.
+We can either analyze a single operation executed by the device, or a full execution.
+Side-channel attacks (SCAs) exploit the relation between information leaked through a side-channel and the corresponding secret data.
+Different types of side-channels can be used: timing information, power consumption and electromagnetic signals are all information sources that can be used in SCAs.
+When we consider an implementation on a specific device, we can use these side channels to obtain secret information stored or used in this device. 
+This can break secrecy assumptions about confidential information used in these devices.
+In Elliptic Curve Cryptography (ECC), we use public and private keys to encrypt and decrypt messages.
+If we have an encrypted message, the original message can only be obtained if one knows the corresponding private key.
+Construction of these keys depends on a problem that makes it particularly hard to obtain the private key assuming  the public key is accessible to anyone.
+With respect to ECC, the difficulty of this problem depends on the intractability of determining $k$ from $Q = kP$ where the points $P$ and $Q$ are known. 
+This computation of $kP$ is also known as scalar multiplication.
+In \cite{costello2015fourq}, a new curve called {\fourq} is introduced.
+Scalar multiplication on {\fourq} is very fast compared to other curves that were considered after its introduction.
+This is because {\fourq} can make use of a 4-dimensional Gallant-Lambert-Vanstone (GLV) decomposition, which reduces the total number of operations needed to compute a scalar multiplication.
+In this thesis, we attack a hardware implementation of {\fourq} on FPGAs which was introduced in \cite{jarvinen2016four}.
+We make use of an Online Template Attack (OTA) \cite{batina2014online}, which greatly reduces the number of templates needed compared to regular template attacks. 
+\end{abstract}

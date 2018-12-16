@@ -1,0 +1,116 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\subsection{Scalar decomposition} \label{subsec: Scalar decomposition}
+In this subsection, we describe how {\fourq} decomposes the scalar $m \in \mathbb{Z}$ into the corresponding 4-dimensional multiscalar $(a_1, a_2, a_3, a_4) \in \mathbb{Z}$ such that $m \equiv a_1 + a_2 \lambda_\phi + a_3 \lambda_\psi + a_4 \lambda_\phi \lambda_\psi \pmod{N}$ with $0 \le a_i < 2^{64} - 1$ for $i \in \{1,2,3,4\}$.
+In this decomposition, $\lambda_\psi$ and $\lambda_\phi$ are the eigenvalues of the two endomorphisms $\psi$ and $\phi$ on $\mathcal{E}(\mathbb{F}_{p^2}) \left[ N \right]$, which are defined as follows \cite{costello2015fourq}:
+%
+\begin{align*}
+\lambda_\psi &:= 4 \cdot \frac{p + 1}{r} \pmod{N} \\
+\lambda_\phi & := 4 \cdot \frac{(p - 1) r^3}{(p + 1)^2 V} \pmod{N}
+\end{align*}
+%
+with $r$ and $V$ being integers that satisfy the formulas presented in \cite[§3.3]{costello2015fourq}. 
+We fix both integers by taking the following solution to these equations:
+%
+\begin{equation*}
+V := 49293975489306344711751403123270296814, ~~~~ r := 15437785290780909242
+\end{equation*}
+%
+To be able to decompose the scalar, we need to introduce of couple of definitions and concepts.
+First, we define the \textit{lattice of zero decompositions} as follows \cite{costello2015fourq}:
+%
+\begin{equation*}
+\mathcal{L} := \langle (z_1, z_2, z_3, z_4) \in  \mathbb{Z} \mid  z_1 + z_2 \lambda_\phi + z_3 \lambda_\psi + z_4 \lambda_\phi \lambda_\psi \equiv 0 \pmod{N} \rangle
+\end{equation*}
+%
+Now the set of decompositions for $m \in \mathbb{Z} / N \mathbb{Z} $ (i.e. the ring of integers modulo $N$) is the lattice coset $(m, 0, 0, 0) + \mathcal{L}$.
+Given a basis $\bm{B} = (\bm{b}_1, \bm{b}_2, \bm{b}_3, \bm{b}_4)$ of $\mathcal{L}$, we can now compute $(\alpha_1, \alpha_2, \alpha_3, \alpha_4) \in \mathbb{Q}^4$ as the unique solution to  $(m, 0, 0, 0) = \sum_{i=1}^{4} \alpha_i \bm{b}_i$ for any $m \in \mathbb{Z}$. This is done by making use of the \emph{Babai rounding} technique \cite{babai1986lovasz}.
+The rounding technique is an alternative to the nearest plane method, which is a method used to solve the closest vector problem (CVP) \cite{galbraith2012mathematics}.
+In general, the \emph{Babai rounding} method is not guaranteed to solve the closest vector problem, but in this case it will find the solution (see \cite[§4.1]{costello2015fourq}). 
+Application of this method involves the computation of multiple roundings.
+Therefore we need to account for possible rounding errors.
+This is described later on.
+The multiscalar now becomes as follows:
+%
+\begin{equation*}
+(a_1, a_2, a_3, a_4) = (m, 0, 0,0 ) - \sum_{i=1}^{4} \lfloor \alpha_i \rceil \cdot \bm{b}_i
+\end{equation*}
+%
+where $\lfloor \alpha_i \rceil$ indicates that $\alpha_i$ gets rounded to the nearest integer.
+It follows that $(a_1, a_2, a_3, a_4) - (m, 0, 0, 0) \in \mathcal{L}$.
+A Babai optimal basis $\bm{B} = (\bm{b}_1, \bm{b}_2, \bm{b}_3, \bm{b}_4)$ for the zero decomposition lattice is as follows \cite{costello2015fourq}:
+%
+\begin{align*}
+224 \cdot \bm{b}_1 &:= \left( 16(-60\alpha + 13r - 10), 4(-10\alpha - 3r + 12), 4(-15 \alpha + 5r - 13), -13 \alpha - 6r + 3 \right) \\
+8 \cdot \bm{b}_2 &:= (32(5\alpha - r), -8, 8, 2\alpha + r) \\
+224 \cdot \bm{b}_3 &:= (16(80\alpha - 15r + 18), 4(18\alpha - 3r - 16), 4(-15 \alpha - 9r + 15), 15 \alpha + 8r + 3) \\
+448 \cdot \bm{b}_4 &:= (16(-360 \alpha + 77r + 42),  4(42 \alpha + 17r + 72), 4(85\alpha - 21r - 77), (-77\alpha - 36r - 17))
+\end{align*}
+%
+where $\alpha = V/r \in \mathbb{Z}$.
+We have to note that in \cite{costello2015fourq}, a typo was made where the value of $\bm{b_3}[4]$ was defined as $15 \alpha + 8r + 3 \alpha$, which is incorrect.
+With the optimal basis $\bm{B}$, the scalar decomposition using the Babai rounding technique becomes as follows \cite{costello2015fourq}:
+%
+\begin{align*}
+(a_1, a_2, a_3, a_4) &= (m, 0, 0,0 ) - \sum_{i=1}^{4} \lfloor \alpha_i \rceil \cdot \bm{b}_i \\
+6272r^3 \cdot \hat{\alpha}_1 &= 540V^3 + 10r(27r - 4)V^2 + 6r^2(9r^2 - 2r + 18)V + r^3(27r + 4)(r^2 - 2) \\
+25088r^3 \cdot \hat{\alpha}_2 &= 1020V^3 + 10r(47r - 8)V^2 + 2r^2(51r^2 + 26r + 102)V + r^3(47r + 8)(r^2 - 2) \\
+25088r^3 \cdot \hat{\alpha}_3 &= 220V^3 + 10r(11r + 16)V^2 + 2r^2(11r^2 - 46r + 22)V + r^3(11r - 16)(r^2 - 2) \\
+1792r3 \cdot \hat{\alpha}_4 &= 60V^3 + 30r^2V^2 + 2r^2(3r^2 + 2r + 6)V + 3r^4(r^2 - 2) 
+\end{align*}
+%
+where $\alpha_i = \hat{\alpha}_i \cdot m/N$.
+We end up with the following decomposition for $m$:
+%
+\begin{align*}
+m \equiv a_1 + a_2 \lambda_\phi + a_3 \lambda_\psi + a_4 \lambda_\phi \lambda_\psi \pmod{N}
+\end{align*}
+%
+with $\abs{a_i} < 2^{62}$ for $i \in \{1,\ldots,4\}$.
+As mentioned previously, the method of \emph{Babai rounding} used to find the multiscalar makes use of four roundings $\lfloor \frac{\hat{\alpha}_i}{N} \cdot m \rceil$, where $m$ is the input scalar and $N$ the fixed curve constant.
+The four $\hat{\alpha}_i$ and their denominators $N$ are fixed curve constants.
+An efficient rounding technique exist (as mentioned in \cite{costello2015fourq}), which works by choosing a power of 2 that is greater than the denominator $N$.
+If we call this value $\mu$, we can use it to calculate the fixed curve constants $\ell_i = \lfloor \frac{\hat{\alpha}_i}{N} \cdot \mu \rceil$.
+If we now want to calculate $\lfloor \frac{\hat{\alpha}_i}{N} \cdot m \rceil$, we can do it as follows:
+%
+\begin{equation*}
+\left\lfloor \frac{\ell_i \cdot m}{\mu} \right\rceil = \left\lfloor \left\lfloor \frac{\hat{\alpha}_i \cdot \mu}{N} \right\rceil \cdot \frac{m}{\mu} \right\rceil
+\end{equation*}
+%
+The division by $\mu$ at runtime can now easily be done by a simple bitshift.
+However, this rounding method can sometimes yield results that are off by 1 \cite[§4.2 Lemma 1]{costello2015fourq}:
+%
+\begin{equation*}
+\left\lfloor \frac{\ell_i \cdot m}{\mu} \right\rceil - \left\lfloor \left\lfloor \frac{\hat{\alpha}_i \cdot \mu}{N} \right\rceil \cdot \frac{m}{\mu} \right\rceil \in \{0, 1\}
+\end{equation*}
+%
+In \cite[§4.2 Lemma 1]{costello2015fourq}, the value above is proven to be greater than $-1/2 - m/(2\mu)$ and less than $3/2 + m/2(\mu)$.
+Larger values of $\mu$ decrease the chance of rounding errors, but in {\fourqs} design it was decided to always account for these rounding errors \cite{costello2015fourq}.
+This is done by allowing:
+%
+\begin{equation*}
+(a_1, a_2, a_3, a_4) = \sum_{i=1}^{4}(\alpha_i - \hat{\alpha}_i) \bm{b}_i = \sum_{i=1}^{4}(\alpha_i - (\hat{\alpha}_i - \epsilon_i)) \bm{b}_i
+\end{equation*}
+%
+for all the possible combinations (sixteen in total) of $\epsilon_i \in \{0, 1\}$ and $i \in \{1, 2, 3, 4\}$.
+This means that all integers less than $\mu$ will decompose to a multiscalar in $\mathbb{Z}^4$.
+Each of the coordinates in this multiscalar lie inside the parallelepiped $\mathcal{P}_\epsilon (\bm{B}) := \{ \bm{B}x \mid x \in [-1/2, 3/2)^4\}$.
+In addition, $\mu$ becomes the fixed value $2^{256}$.
+Another thing that remains to be addressed is the sign of the multiscalar.
+Many points in $\mathcal{P}_\epsilon (\bm{B}) \cap \mathbb{Z}^4 $ are far greater than $2^{62}$ in absolute value. 
+In addition, the majority of these points will have coordinates that are both positive and negative.
+Dealing with signed multiscalars can require an additional iteration in the main loop for the scalar multiplication, which is unwanted.
+Therefore, an offset vector in $\mathcal{L}$ is used to find a translate of $\mathcal{P}_\epsilon (\bm{B})$  which only contains positive coordinates.
+This is done by finding two vector $\bm{c}$ and $\bm{c}'$ in $\mathcal{L}$ that achieve this property.
+This leads to the following multiscalar corresponding to the decomposition of $m \in [0, 2^{256})$ \cite{costello2015fourq}:
+%
+\begin{align*}
+a_1 &= m - \tilde{a_1}    \cdot \bm{b_1}[1] - \tilde{a_2} \cdot \bm{b_2}[1] - \tilde{a_3} \cdot \bm{b_3}[1] - \tilde{a_4} \cdot \bm{b_4}[1] \\
+a_2 &=~~~~~ - \tilde{a_1} \cdot \bm{b_1}[2] - \tilde{a_2} \cdot \bm{b_2}[2] - \tilde{a_3} \cdot \bm{b_3}[2] - \tilde{a_4} \cdot \bm{b_4}[2] \\
+a_3 &=~~~~~ - \tilde{a_1} \cdot \bm{b_1}[3] - \tilde{a_2} \cdot \bm{b_2}[3] - \tilde{a_3} \cdot \bm{b_3}[3] - \tilde{a_4} \cdot \bm{b_4}[3] \\
+a_4 &=~~~~~ - \tilde{a_1} \cdot \bm{b_1}[4] - \tilde{a_2} \cdot \bm{b_2}[4] - \tilde{a_3} \cdot \bm{b_3}[4] - \tilde{a_4} \cdot \bm{b_4}[4]
+\end{align*}
+%
+where $\bm{B}$ is the basis introduced earlier, $\ell_i := \lfloor \hat{\alpha}_i \cdot \mu \ N \rceil$ are the four curve constants (with $\hat{\alpha}_i$ as defined earlier).
+$\bm{c} = 5\bm{b}_2 - 3\bm{b}_3 + 2\bm{b}_4$ and $\bm{c'} = 5\bm{b}_2 - 3\bm{b}_3 + 3\bm{b}_4$ are the translation vectors used to make the coordinates positive, and $\tilde{\alpha}_i = \lfloor \ell_i m / \mu \rfloor$. In \cite[§4.3, Proposition 5]{costello2015fourq} and its corresponding proof, it is shown that both of the multiscalars $(a_1, a_2, a_3, a_4) + \bm{c}$ and $(a_1, a_2, a_3, a_4) + \bm{c'}$ are valid decompositions of $m$ (with all of the coordinates being positive and less than $2^{64}$). 
+In addition, it is shown that exactly \emph{one} of these decompositions of $m$ has a first coordinate that is odd, which is required as it makes scalar multiplication and recoding easier.

@@ -1,0 +1,31 @@
+% !TeX spellcheck = en_US
+
+\begin{tikzpicture}[->, >=stealth',shorten >=1pt,auto,node distance=2cm]
+\node[state, initial] (cmd) {$i$};
+\draw (cmd) edge [loop above, left, in=60, out=120, looseness=5] (cmd);
+
+\node[state, right of = cmd] (write addr msb) {$w_1$};
+\node[state, right of = write addr msb] (write addr lsb) {$w_2$};
+\node[state, right of = write addr lsb ] (write data msb) {$w_3$};
+\node[state, right of = write data msb ] (write data lsb) {$w_4$};
+
+\node[state, below of = write addr lsb] (wait read effective) {$r_{wait}$};
+\node[state, right of = wait read effective] (read data msb) {$r_3$};
+\node[state, right of = read data msb ] (read data lsb) {$r_4$};
+
+
+\draw (cmd) edge node{} (write addr msb);
+\draw (write addr msb) edge node{} (write addr lsb);
+\draw (write addr lsb) edge node{} (wait read effective);
+\draw (wait read effective) edge [loop above, left, in=150, out=210, looseness=5] (wait read effective);
+\draw (wait read effective) edge node{} (read data msb);
+\draw (read data msb) edge node{} (read data lsb);
+
+\draw (write addr lsb) edge node{} (write data msb);
+\draw (write data msb) edge node{} (write data lsb);
+
+\draw (write data lsb) edge [bend right, above] node{} (cmd);
+
+\draw (read data lsb) edge [bend left=50] node{} (cmd);
+
+\end{tikzpicture}

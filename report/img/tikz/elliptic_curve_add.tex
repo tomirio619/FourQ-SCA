@@ -1,0 +1,41 @@
+\begin{tikzpicture}
+    \begin{axis}[
+        xmin=-3,
+        xmax=4,
+        ymin=-7,
+        ymax=7,
+        xlabel={$x$},
+        ylabel={$y$},
+        scale only axis,
+        axis lines=middle,
+        % set the minimum value to the minimum x value
+        domain=-2.456678:4,      % <-- works for pdfLaTeX and LuaLaTeX
+        samples=1000,
+        smooth,
+        % to avoid that the "plot node" is clipped (partially)
+        clip=false,
+        % use same unit vectors on the axis
+        axis equal image=true,
+        xticklabels={,,},
+        yticklabels={,,}
+    ]
+        \addplot [black] {sqrt(x^3-4*x+5)};
+        \addplot [black] {-sqrt(x^3 - 4*x + 5)};
+        
+         % Some math constant macros
+         \pgfmathsetmacro\localmaximum{-2/sqrt(3)}
+        
+       	% add nodes to the points and the corresponding labels
+       	\node [label={$P$}, circle,fill,inner sep=1.5pt] (P) at (\localmaximum, 2.842) {};
+       	\node [label=below:{$Q$}, circle,fill,inner sep=1.5pt] (Q) at (-\localmaximum, -1.368) {};
+       	% draw a line from (P) a bit further than just to (Q)
+       	\draw [black] ($ (Q)!1.5!(P) $) --  (P) -- ($ (P)!2.5!(Q) $);
+       	% Specify node at intersection point
+       	\node [above,circle,fill,inner sep=1.5pt] (I) at (3.31185, -5.29888 - 0.1) {};
+       	% Specify result node
+       	\node [label=right:{$P + Q$},above,circle,fill,inner sep=1.5pt] (R) at (3.31185, 5.29888) {};
+       	% Draw line
+       	\draw [black, dashed] (I) -- (R);
+       	 
+    \end{axis}
+\end{tikzpicture}

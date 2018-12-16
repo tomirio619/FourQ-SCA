@@ -1,0 +1,53 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\subsection{\texorpdfstring{The endomorphisms $\psi$ and $\phi$}{The endomorphisms psi and phi}} \label{subsec: The endomorphisms psi and phi}
+In \cite{costello2015fourq}, explicit formulas for the two endomorphisms on $\mathcal{E}$ are first derived for elliptic curves in short Weierstrass form $\mathcal{E}_W$.
+Then they make use of a map to convert these formulas from $\mathcal{E}_W$ to $\hat{\mathcal{E}}$, where $\hat{\mathcal{E}} \slash \mathbb{F}_{p^2} : -x^2 + y^2 = 1 + \hat{d}x^2y^2$ is a twisted Edwards curve that is 4-isogenous to $\mathcal{E}$ (with $d = -(1 + 1 / \hat{d})$).
+% https://math.stackexchange.com/questions/36724/what-is-isogeny
+%An isogeny is a special kind of morphism between elliptic curves.
+%A good notion of maps between curves are rational maps.
+%However, an elliptic curve also has a point at infinity and a group structure.
+%These properties are not taken into account when we work with rational maps.
+%We want a map that, besides taking the properties into account as a rational map would do, also takes this extra structure on the curve into account.
+%This is exactly what an isogeny does.
+An isogeny between two elliptic curves $E_1$ and $E_2$ is a rational morphism $\varphi : E_1 \to E_2$ that maps the point at infinity $\mathcal{O}$ of $E_1$ to the point at infinity $\mathcal{O}$ of $E_2$.
+The maps in the case of {\fourq} are shown in \cite[§3]{costello2015fourq}.
+The explicit formula for $\psi$ is defined as follows \cite{costello2015fourq}:
+%
+\begin{align*}
+\psi &= \hat{\tau} (\delta \psi_W \delta^{-1}) \tau \\
+%
+\tau &: \mathcal{E} \mapsto \hat{\mathcal{E}}, (x, y) \mapsto \left( \frac{2xy}{\left( x^2 + y^ 2 \right) \sqrt{\hat{d}}}, \frac{x^ 2 - y^2 + 2}{y^2 - x^2} \right) \\
+%
+\hat{\tau} &: \hat{\mathcal{E}} \to \mathcal{E}, (x, y) \mapsto \left( \frac{2xy \sqrt{\hat{d}}}{x^2 - y^2 + 2}, \frac{y^2 - x^2}{y^2 + x^2} \right) \\
+%
+(\delta \psi_W \delta^{-1}) &: \hat{\mathcal{E}} \to \hat{\mathcal{E}}, (x,y) \mapsto \left( \frac{2ix^p \cdot c_{-2, 3, -1, 0}}{y^p \cdot ((x^p)^2 \cdot c_{-140, 99, 0, 0} + c_{-76, 57, -36, 24})}, \frac{c_{-9, -6, 4, 3} - (x^p)^2 }{c_{-9, -6, 4, 3} + (x^p)^2} \right)
+\end{align*}
+%
+Each of the $p$-power-Frobenius operations shown above are actually equal to a single negation in $\mathbb{F}_p$.
+Therefore, they can be calculate very efficiently.
+The notation $c_{i, j, k, l}$ is used to denote the constant $i + j \sqrt{2} + k\sqrt{5} + l\sqrt{2}\sqrt{5}$ in $\mathbb{F}_{p^2}$.
+This is fixed by setting these values as follows:
+%
+\begin{align*}
+\sqrt{2} &:= 2^ {64} \\
+\sqrt{5} &:= 87392807087336976318005368820707244464 \cdot i
+\end{align*}
+%
+The explicit formula for $\phi$ is defined as:
+%
+\begin{align*}
+\phi &= \hat{\tau} (\delta \psi_W \delta^{-1}) \tau \\
+%
+(\delta \phi_W \delta^{-1})  &: \hat{\mathcal{E}} \to \hat{\mathcal{E}}, (x, y) \mapsto (x_\phi, y_\phi), \text{ where } \\
+%
+x_\phi &= \left( \frac{c_{9, -6, 4, -3} \cdot x \cdot (y^2 - c_{7, 5, 3, 2} \cdot y + c_{21, 15, 10, 7}) \cdot (y^2 + c_{7, 5, 3, 2} \cdot y + c_{21, 15, 10, 7})}{(y^2 + c_{3,2,1,1} \cdot y + c_{3,3,2,1}) \cdot (y^2 - c_{3,2,1,1} \cdot y + c_{3,3,2,1})} \right)^p \\
+%
+y_\phi &= \left( \frac{c_{15, 10, 6, 4} \cdot (5y^4 + c_{120, 90, 60, 40} \cdot y^2 + c_{175, 120, 74, 54})}{5y \cdot (y^4 + c_{240, 170, 108, 76} \cdot y^2 + c_{3055, 2160, 1366, 966})} \right)^p
+\end{align*}
+%
+where $\tau$ and $\hat{\tau}$ are the same as defined in the explicit formula for $\psi$.
+Both endomorphisms are computed on $\mathcal{E}$ by computing $\tau$ and $\hat{\tau}$ separately.
+The ordering of the endomorphisms in the scalar decomposition \emph{does} matter. 
+The reason for this is that the endomorphism $\psi$ can be computed much faster than $\varphi$. 
+Therefore, $\psi$ is computed twice and $\varphi$ only once.

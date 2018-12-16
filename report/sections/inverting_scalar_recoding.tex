@@ -1,0 +1,253 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{An attempt to inverse the scalar recoding} \label{sec: An attempt to inverse the scalar recoding}
+To obtain templates for the OTA, we need to find recoded scalars with specific values at the digit-columns in the corresponding recoded matrix.
+As we can change the value of the scalar used in {\fourqs} scalar multiplication, we need to obtain a scalar that, once decomposed and recoded, has the expected digit-column values in it.
+To determine which decomposed multiscalar belongs to our wanted recoded matrix, we have to inverse the scalar recoding for this matrix.
+We first take a look at the operations in the scalar recoding algorithm shown in \Cref{algo: Protected Recoding Algorithm for the GLV-SAC Representation}.
+We can see that in \Cref{lst:scalar recoding general:scalar update}, the value of the scalar gets updated in each iteration by taking the floor of its current value divided by 2 (i.e. a bit shift of 1 to the right) and subtracting the floor of $b_i^j$ divided by 2.
+In \Cref{lst:scalar recoding general:digit column value}, we see that the value $b_i^j$ is assigned a value that is the result of taking bit $i$ of the sign-aligner and multiplying it with the very first bit of scalar $k_j$.
+So what are the possible values for these variables?
+%
+\begin{itemize}
+	\item $\bm{b_i^j = b_i^J \cdot k_0^j}$. We know that, once the sign-aligner is converted to signed non-zero form (\Cref{lst:scalar recoding general:signed-nonzero start,lst:scalar recoding general:signed-nonzero oper,lst:scalar recoding general:signed-nonzero end})% <--- no space after the comma
+	, all of its values at position $i$ will be either $1$ or $-1$: $b_i^J \in \{1, -1\}$. As the value $k_i^j \in \{0, 1\}$ (as all of the scalars are binary numbers in signed form), we have $b_i^j \in \{0, 1, -1\}$.
+	
+	\item $\bm{k_j = \lfloor k_j / 2\rfloor - \lfloor b_i^j / 2 \rfloor}$. We know that $b_i^j \in \{0, 1, -1\}$. Therefore, we have $\lfloor b_i^j / 2 \rfloor \in \{0, -1\}$. Note that the $-1$ is due to the fact that $\lfloor -1 / 2 \rfloor = -1$.
+\end{itemize}
+%
+As the floor operation applied to the scalar $k_j$ divided by 2 is in essence a bit shift, we can see that this bitshift is done $65$ times (i.e for $j \in [0, 64]$).
+As we are working with $64$-bit integers, one would expect that the value of the scalar becomes zero after 64 bitshifts. However, the subtraction of $\lfloor  b_i^j / 2 \rfloor$ from the shifted scalar can also result in an addition of 1.
+Therefore, only after $65$ bitshifts the value of $k_j$ will be zero.
+We know that all $k_j$'s will have a value of zero once the recoding algorithm has been applied.
+Lets see what happens if we try to obtain the original multiscalar by applying the algorithm in reversed order.
+As we know, a bitshift is not a completely irreversible operation.
+In the case of a right bitshift, we loose the first bit of the scalar (i.e. the bit indicating the parity of the scalar).
+Due to the bitshift and subtraction occurring at \Cref{lst:scalar recoding general:scalar update} of the algorithm, we somehow have to guess what the value in the previous iteration would have been.
+So what are these possible values.
+This depends on the parity of the scalar used.
+Assume we have the result $r = (((d >> 1) << 1) + c)$ with $c \in \{0, 1\}$ and $d \in \mathbb{N}$.
+By finding all possible outcomes for $r$ and $c$ with $d$ being either odd or even, we know how many possibilities there are when inverting the operation of \Cref{lst:scalar recoding general:scalar update} in the recoding algorithm. 
+The results can be seen in \Cref{tbl: inversion of floor function}.
+%
+\begin{table}
+	\centering
+	%	
+	\begin{tabular}{*3c}
+		\toprule
+		& $\bm{d \in \mathbb{N}}$ & $\bm{d \in 2\mathbb{N} \setminus \{0\} }$ \\
+		\midrule
+		$\bm{c = 0}$ & $0$ & $1$ \\
+		$\bm{c = 1}$ & $-1$ & $0$ \\
+		\bottomrule
+	\end{tabular}
+	%
+	\captionof{table}{Possible outcomes of the equation $r = (((d >> 1) << 1) + c)$ with $c \in \{0, 1\}$ and $d \in \mathbb{N}$ being either odd or even. This table shows the possible values of $k_j$ if we would try to find its original value after we already applied the operation at \Cref{lst:scalar recoding general:scalar update} of \Cref{algo: Protected Recoding Algorithm for the GLV-SAC Representation}.}
+	\label{tbl: inversion of floor function}
+\end{table}
+%
+We can see that $r \in \{0, 1, -1\}$, which gives us an idea of the number of possibilities when trying to undo the operation at \Cref{lst:scalar recoding general:scalar update} of the recoding algorithm once it has been applied.
+In each iteration of the algorithm, it seems like we need to guess three possibilities to obtain the correct value for iteration $i - 1$: $k_j << 1$, $(k_j << 1) - 1$ and $(k_j << 1) + 1$. 
+This seems to be impossible, as this would require us to try $3^{64}$ values.
+However, at every moment in time, we only need to make sure that the digit-column for which we are trying to generate templates has a specific value (and all the previous digit-columns we already attacked).
+It therefore seems to be the case that the values of the other digit-columns do not matter.
+To see if we can make this work, we take a look at the example shown in \cite[Example 1]{faz2015efficient}.
+In this example, they also have a multiscalar consisting of four scalars ($m = 4$) having a length of $l = 5$. 
+The decomposition of the `original scalar' is given as $kP = 11P_0 + 6P_1 + 14P_2 + 3P_3$. 
+If we arrange the scalars in matrix form and apply the recoding, we get the following:
+%
+\begin{equation*}
+%
+\begin{bmatrix}
+k_0 \\
+k_1 \\
+k_2 \\
+k_3 
+\end{bmatrix}
+%
+\equiv
+%
+\begin{bmatrix}
+0 & 1 & 0 & 1 & 1 \\
+0 & 0 & 1 & 1 & 0 \\
+0 & 1 & 1 & 1 & 0 \\
+0 & 0 & 0 & 1 & 1 
+\end{bmatrix}
+%
+\equiv
+%
+\begin{bmatrix}
+1 & \bar{1} & 1 & \bar{1} & 1 \\
+1 & \bar{1} & 0 & \bar{1} & 0 \\
+1 & 0 & 0 & \bar{1} & 0 \\
+0 & 0 & 1 & \bar{1} & 1
+\end{bmatrix}
+%
+\end{equation*}
+%
+We are going to attack the leftmost digit-column (just like the one that would be used in the very first iteration of {\fourqs} scalar multiplication algorithm).
+In this case, this is digit-column $d_4$.
+Our first step would be to find a multiscalar that produces the output in the matrix that we want to have for $d_4$.
+We assume that this is the exact same template as the one produced by the `secret' scalar: $\mathbb{K}_4 = \left[ 011 \right]$ or $d_4 = 3$.
+Now we try to find the remaining entries in the recoding matrix. 
+For simplicity, we show our attempt by only taking the first scalar into account (i.e. $k_1$). 
+Recall the operation that updates the scalar in each iteration:
+%
+\begin{equation*}
+k_j = \lfloor k'_j / 2 \rfloor - \lfloor b_i^j \rfloor \equiv \lfloor k'_j / 2 \rfloor - \lfloor (b_i^J \cdot k_0^{\prime j} ) / 2 \rfloor 
+\end{equation*}
+%
+with $k_j'$ denoting the value of $k_j$ in the current iteration before it was updated (i.e the value of $k_j$ after the previous iteration $i - 1$ finished).
+The attempt is shown below.
+%
+\begin{itemize}
+	\item \textbf{Iteration} $\bm{i = 4}$. 	We know that $k_1 = \lfloor k'_1 / 2 \rfloor - \lfloor (b_4^J \cdot k_0^{\prime 1} ) / 2 \rfloor = 0$ with $k'_1 \in \{0, 1\}$ (note that $-1$ is not possible as the intermediate values of the scalar remain positive throughout the entire algorithm). 
+	In addition, we also know that $b_4^J = 1$.
+	This gives us two possibilities:
+	%
+	\begin{itemize}
+		\item $\bm{ \lfloor k'_1 / 2 \rfloor = 0 }$ \textbf{and} $ \bm{ \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0 }$. 
+		$\lfloor k'_1 / 2 \rfloor = 0$ can only happen if $k'_1 \in \{0, 1\}$. $\lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0$ can only happen if $b_3^J \cdot k_0^{\prime 1} \in \{0, 1\}$. This implies that $b_4^J = 1$ and $ k_0^{\prime 1} = 1$. The latter is only possible if $k'_1 = 1$.
+		
+		\item  $\bm{ \lfloor k'_1 / 2 \rfloor = 1 }$ \textbf{and} $ \bm{ \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 1 }$. 
+		$ \lfloor k'_1 / 2 \rfloor = 1$ is only possible if $k'_1 \in \{0, 1\}$. However, this contradicts with the fact that $k'_1 \in \{0, 1\}$ \Lightning.
+	\end{itemize}
+	%
+	
+	\item \textbf{Iteration} $\bm{i = 3}$. We know that $k_1 = \lfloor k'_1 / 2 \rfloor - \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 1$ with $k'_1 \in \{1, 2, 3\}$. This gives us two possibilities:
+	%
+	\begin{itemize}
+		\item $\bm{ \lfloor k'_1 / 2 \rfloor = 0 }$ \textbf{and} $ \bm{ \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1 }$. 
+		$\lfloor k'_1 / 2 \rfloor = 0 $ can only happen if $k'_1 = 1$. $\lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1$ can only happen if $b_3^J \cdot k_0^{\prime 1} \in \{-2, -1 \}$. This means that $k_0^{\prime 1} = 1$ and $b_3^J = -1$.
+		
+		\item $\bm { \lfloor k'_1 / 2 \rfloor = 1 }$ \textbf{and} $ \bm{ \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0 }$.
+		$\lfloor k'_1 / 2 \rfloor = 1$ can only happen if $k'_1 \in \{2, 3\}$. $ \lfloor (b_3^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0$ can only happen if $b_3^J \cdot k_0^{\prime 1} \in \{0, 1\}$. This gives the following combinations of values:
+		%
+		\begin{itemize}
+			\item $b_3^J = -1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 2$)
+			\item $b_3^J = 1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 2$)
+			\item $b_3^J = 1$ and $ k_0^{\prime 1} = 1$ (implies $k'_1 = 3$)
+		\end{itemize}
+		%
+		For the sake of simplicity, we assume to guess $k'_1 = 1$ which gives $k_0^{\prime 1} = 1$.
+	\end{itemize}
+	%
+	\item \textbf{Iteration} $\bm{i = 2}$. We know that $k_1 = \lfloor k'_1 / 2 \rfloor - \lfloor (b_2^J \cdot k_0^{\prime 1}) / 2 \rfloor = 1$ with $k'_1 \in \{1, 2, 3\}$. This gives us two possibilities:
+	%
+	\begin{itemize}
+		\item $\bm{ \lfloor k'_1 / 2 \rfloor = 0 }$ \textbf{and} $ \bm{ \lfloor (b_2^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1 }$. 
+		$\lfloor k'_1 / 2 \rfloor = 0 $ can only happen if $k'_1 = 1$. $\lfloor (b_2^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1$ can only happen if $b_2^J \cdot k_0^{\prime 1} \in \{-2, -1\}$. This means that $k_0^{\prime 1} = 1$ and $b_2^J = -1$.
+		
+		\item $\bm { \lfloor k'_1 / 2 \rfloor = 1 }$ \textbf{and} $ \bm{ \lfloor (b_2^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0 }$.
+		$\lfloor k'_1 / 2 \rfloor = 1$ can only happen if $k'_1 \in \{2, 3\}$. $ \lfloor (b_2^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0$ can only happen if $b_2^J \cdot k_0^{\prime 1} \in \{0, 1\}$. 
+		This gives the following combinations of values:
+		%
+		\begin{itemize}
+			\item $b_2^J = -1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 2$)
+			\item $b_2^J = 1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 2$)
+			\item $b_2^J = 1$ and $ k_0^{\prime 1} = 1$ (implies $k'_1 = 3$)
+		\end{itemize}
+		%
+		For the sake of simplicity, we assume to guess $k'_1 = 2$ which gives $k_0^{\prime 1} = 0$.
+	\end{itemize}
+	%
+	\item \textbf{Iteration} $\bm{i = 1}$. We know that $k_1 = \lfloor k'_1 / 2 \rfloor - \lfloor (b_1^J \cdot k_0^{\prime 1}) / 2 \rfloor = 2$ with $k'_1 \in \{3, 4, 5\}$. This gives us two possibilities:
+	%
+	\begin{itemize}
+		\item $\bm{ \lfloor k'_1 / 2 \rfloor = 1 }$ \textbf{and} $ \bm{ \lfloor (b_1^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1 }$. 
+		$\lfloor k'_1 / 2 \rfloor = 1 $ can only happen if $k'_1 \in \{2, 3\}$ (i.e. $k'_1 = 3$). $\lfloor (b_1^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1$ can only happen if $b_1^J \cdot k_0^{\prime 1} \in \{-2, -1\}$. This means that $k_0^{\prime 1} = 1$ and $b_1^J = -1$.
+		
+		\item $\bm { \lfloor k'_1 / 2 \rfloor = 2 }$ \textbf{and} $ \bm{ \lfloor (b_1^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0 }$.
+		$\lfloor k'_1 / 2 \rfloor = 2$ can only happen if $k'_1 \in \{4, 5\}$. $ \lfloor (b_1^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0$ can only happen if $b_1^J \cdot k_0^{\prime 1} \in \{0, 1\}$. 
+		This gives the following combinations of values:
+		%
+		\begin{itemize}
+			\item $b_1^J = -1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 4$)
+			\item $b_1^J = 1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 4$)
+			\item $b_1^J = 1$ and $ k_0^{\prime 1} = 1$ (implies $k'_1 = 5$)
+		\end{itemize}
+		%
+		For the sake of simplicity, we assume to guess $k'_1 = 3$ which gives $k_0^{\prime 1} = 1$.
+	\end{itemize}
+	%
+	\item \textbf{Iteration} $\bm{i = 0}$. We know that $k_1 = \lfloor k'_1 / 2 \rfloor - \lfloor (b_0^J \cdot k_0^{\prime 1}) / 2 \rfloor = 3$ with $k'_1 \in \{5, 6, 7\}$. This gives us two possibilities:
+	%
+	\begin{itemize}
+		\item $\bm{ \lfloor k'_1 / 2 \rfloor = 2 }$ \textbf{and} $ \bm{ \lfloor (b_0^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1 }$. 
+		$\lfloor k'_1 / 2 \rfloor = 2 $ can only happen if $k'_1 \in \{4, 5\}$ (i.e. $k'_1 = 5$). $\lfloor (b_0^J \cdot k_0^{\prime 1}) / 2 \rfloor = -1$ can only happen if $b_0^J \cdot k_0^{\prime 1} \in \{-2, -1\}$. This means that $k_0^{\prime 1} = 1$ and $b_1^J = -1$.
+		
+		\item $\bm { \lfloor k'_1 / 2 \rfloor = 3 }$ \textbf{and} $ \bm{ \lfloor (b_0^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0 }$.
+		$\lfloor k'_1 / 2 \rfloor = 3$ can only happen if $k'_1 \in \{6, 7\}$. $\lfloor (b_0^J \cdot k_0^{\prime 1}) / 2 \rfloor = 0$ can only happen if $b_1^J \cdot k_0^{\prime 1} \in \{0, 1\}$. 
+		This gives the following combinations of values:
+		%
+		\begin{itemize}
+			\item $b_0^J = -1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 6$)
+			\item $b_0^J = 1$ and $ k_0^{\prime 1} = 0$ (implies $k'_1 = 6$)
+			\item $b_0^J = 1$ and $ k_0^{\prime 1} = 1$ (implies $k'_1 = 7$)
+		\end{itemize}
+		%
+		For the sake of simplicity, we assume to guess $k'_1 = 6$ which gives $k_0^{\prime 1} = 1$.
+	\end{itemize}
+	%
+\end{itemize}
+%
+As you can see, we have three possibilities for obtaining a specific value for the last bit in digit-column $\mathbb{K}_4$.
+For the other most-significant bits in the remaining digit-columns, we have four combinations to guess. This gives a total number of $3 \cdot 4^4 = 768$ combinations for this very simple example. In the case of {\fourq} where we have $l = 65$, this would give us $3 \cdot 4^{64}$ possible combinations (a 130-bit value), which is clearly unfeasible to brute force. 
+%
+\begin{table}[H]
+	\centering
+	\begin{tabular}{*6c}
+		\toprule 
+		& \multicolumn{5}{c}{iteration $i$} \\
+		\cline{2-6}
+		& \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} \\
+		\midrule
+		$b_i^J$ & 1 & -1 & 1 & -1 & 1 \\
+		$k_0^j$ & 0 & 1 & 0 & 1 & 1 \\
+		$b_i^j$ & 0 & -1 & 0 & -1 & 1 \\
+		$k_j$ & 3 & 2 & 1 & 1 & 0  \\
+		\bottomrule
+	\end{tabular}
+	\captionof{table}{intermediate values for the scalar recoding iteration with $j = 1$ and $k_1 = 6$.}
+\end{table}
+%
+\begin{figure}[H]
+	\centering
+	\subfloat[Outcome ranges for the function $\lfloor \frac{x \cdot y}{2}\rfloor$ with $x \in \{1, -1\}$ and $y \in \{0, 1\}$ but $y$'s exact value being unknown.]{
+	%
+	\centering
+	\begin{tabular}{*2c}
+		\toprule
+		& $\lfloor \frac{x \cdot y}{2}\rfloor$ \\
+		\midrule
+		$x = 1$ & $y$ \\
+		$x = -1$ & $-y$ \\
+		\bottomrule
+	\end{tabular}
+	%
+	}
+	%	
+	\hspace{1cm}
+	%		
+	\subfloat[Outcome ranges for the function $\lfloor \frac{x \cdot y}{2}\rfloor$ with $y \in \{0, 1\}$ and $x \in \{-1, 1\}$ but $x$'s exact value being unknown.]{
+	%
+	\centering
+	\begin{tabular}{*2c}
+		\toprule
+		& $\lfloor \frac{x \cdot y}{2}\rfloor$ \\
+		\midrule
+		$y = 0$ & $0$ \\
+		$y = 1$ & $x$ \\
+		\bottomrule
+	\end{tabular}
+	%
+	}
+	\captionof{figure}{Possible outcomes for the function $\lfloor \frac{x \cdot y}{2}\rfloor$ with either $x$ or $y$ being unknown.}
+\end{figure}
+%
+Fortunately, we can circumvent the inversion of the recoding by changing the hardware implementation in such a way that it takes a decomposed scalar instead of a scalar that still needs to be decomposed. 
+The implementation still remains the same, but instead of assigning the results of the decomposition to the corresponding multiscalar, we take the values of the decomposed scalar directly and assign them to their corresponding signals.
+It would however still be interesting to see if it is possible to invert the scalar recoding in such a way that you can create a recoded multiscalar.
+If we convert this multiscalar back to the original scalar and apply decomposition and recoding, it should still have the wanted values at the specific digit-columns in the recoded matrix.
+This would make a template attack against hardware implementations of {\fourq} possible in an even more restricted setting where the attacker does have a similar device, but where its implementation cannot be changed. 
+This could however be a whole research project on its own, and is left as an open problem for others.

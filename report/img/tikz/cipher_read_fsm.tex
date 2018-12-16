@@ -1,0 +1,14 @@
+% !TeX spellcheck = en_US
+
+\begin{tikzpicture}[->, >=stealth',shorten >=1pt,auto,node distance=3cm]
+\node[state, initial] (idle) {$i$};
+
+\node[state, right of = idle] (read) {$r$};
+
+\draw (idle) edge[bend left, above] node[align=left]{\mintinline{text}{devrdy = '1'} \\ \mintinline{text}{hwrrdyn = '0'} \\ \mintinline{text}{crrdyn = '0'}} (read);
+
+\draw (idle) edge [loop above, left, out=-60, in=-120, looseness=5] (idle);
+
+\draw (read) edge [bend left, below] (idle);
+
+\end{tikzpicture}

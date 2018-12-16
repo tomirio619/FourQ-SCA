@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} 488.2 format}
+\PYG{n}{scope}\PYG{o}{.}\PYG{n}{WriteString}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}\PYGZlt{}command string\PYGZgt{}\PYGZdq{}}\PYG{p}{,} \PYG{o}{\PYGZlt{}}\PYG{n}{Boolean} \PYG{n}{EOI}\PYG{o}{\PYGZgt{}}\PYG{p}{)}
+\PYG{c+c1}{\PYGZsh{} Automation Control within the VBS command}
+\PYG{n}{scope}\PYG{o}{.}\PYG{n}{WriteString}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}app.Shutdown\PYGZdq{}}\PYG{p}{,} \PYG{k+kc}{True}\PYG{p}{)}
+\end{Verbatim}

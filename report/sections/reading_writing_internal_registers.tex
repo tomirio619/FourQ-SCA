@@ -1,0 +1,42 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{Reading and writing of internal registers}
+The hardware design of {\fourq} requires us to first load specific constants into the RAM.
+These constants are used during the scalar multiplication, and reduce the number of computations necessary.
+In \Cref{chp: FourQ}, we describe these constants in more detail.
+After the constants are loaded into RAM, the design can be controlled by specific operations.
+These operations are described in \Cref{subsec: Control Logic}.
+To control data assignment to the RAM, we make use of a FSM at the main FPGA.
+This FSM can be seen in \Cref{fig: host fsm}.
+%
+\begin{figure}
+	\centering
+	\input{img/tikz/host_fsm}
+	\captionof{figure}{Finite state machine used by the host interface to control the reading from and writing to the internal registers and control signals of the {\fourq} component.}
+	\label{fig: host fsm}
+\end{figure}
+%
+The FMS writes the \mintinline{text}{data_reg} and \mintinline{text}{addr_reg} values. 
+Based on the values in these registers, the {\fourq} input signals are controlled.
+We describe the FSM of \Cref{fig: host fsm} in more detail.
+In both the reading and writing states, first the value of the address is transmitted  $(w_1, w_2)$ followed by a data read/write ($(r_3, r_4)$ or $(w_3, w_4)$ respectively).
+Because values of both the address and data are 2 bytes, and we can only transmit one byte at a time, this transmission is done in two steps: the most significant byte (MSB) is sent first, followed by the least significant byte (LSB).
+If the FSM is in the reading state and the address value has been transmitted, the address value is used to determine the output of the host interface.
+This is realized by a multiplexer, where the value of the address determines which output signals are retrieved.
+In the final design, reading from the main FPGA is primary used to retrieve the \texttt{busy} control signal, or (parts of) the result point of the scalar multiplication. 
+The multiplexer can also be used to verify whether data assignments are done correctly within the interface itself.
+
+The reason for the address to be 2 bytes is due to the size of the addresses within {\fourq} to load the RAM constants.
+These addresses are 9 bits, where the first bit indicates whether we write the lower or upper half of the 128-bits value.
+The remaining 8 bits specify the value of the address.
+Fortunately, these data and address sizes are also used in the example main FPGA design that comes with the SAKURA-G, and required (almost) no change.
+
+If we want to write data values to the main FPGA, the address is used by the hardware design to control the assignment of data (which are transmitted after the address) to the correct range of a signal.
+Once the address is transferred, 2 bytes of data are transmitted.
+After this is done, a control signal indicates that the assignment of data to the address can be made. 
+If the address is not known internally, all values keep their previous value.
+In the case of reading, there is an additional state in the FSM which waits for the value-to-read to become available.
+The reason for this is due to a read latency of five periods.
+The first three periods in this latency are because of how the interface of the memory is done in the {\fourq} design.
+The remaining two periods are due to the two pipeline stages when reading from the True Dual-Port RAM (TDPR).
+In general, the latency for either of the ports of the TDPR can be seen in the corresponding Block Memory Generator (BMG) configuration (see \Cref{sec: Interface with the board}).

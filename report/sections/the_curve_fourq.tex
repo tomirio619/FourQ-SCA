@@ -1,0 +1,72 @@
+% !TeX spellcheck = en_US
+% !TeX root = ../Tom_Sandmann-master_thesis
+\section{\texorpdfstring{The curve: \fourq}{The Curve FourQ}}
+A new complete twisted Edwards curve was introduced in \cite{costello2015fourq}.
+They work over the following quadratic extension field:
+%
+\begin{align*}
+\mathbb{F}_{p^2} := \mathbb{F}_p(i), \text{ where } p := 2^{127} - 1 \text{ and } i^2 = -1
+\end{align*}
+%
+%To explain what an extension field is, we first explain what a subfield is.
+%If we have a field $L$, a subfield of this field $L$ is a subset $K$ that is also a field with respect to the inherited field operations from $L$.
+%In a similar way, a subfield is a subset that contains the element 1.
+%In addition, subfield is closed under the addition, subtraction and multiplication operations, and also in taking the inverse of a non-zero element of $L$.
+They define $\mathcal{E}$ to be the following twisted Edwards curve:
+\begin{align*}
+\mathcal{E} \slash \mathbb{F}_{p^2} : -x^2 + y^2 = 1 + dx^2 y^2
+\end{align*}
+where $p = 2^{127} - 1$ and $d$ is the following non-square in $\mathbb{F}_{p^2}$:
+%
+\begin{align*}
+d := 125317048443780598345676279555970305165 \cdot i + 4205857648805777768770
+\end{align*}
+%
+The set of rational points $\mathbb{F}_{p^2}$ together with $\mathcal{E}$ form a group, in which the neutral element is $\mathcal{O} = (0, 1)$ and the inverse of a point $(x, y)$ is $(-x, y)$.
+This curve, which is named \fourq, is based on the use of $\mathbb{Q}$-curve reductions as described in \cite{smith2016mathbb}. 
+The group $\mathbb{F}_{p^2}$-rational points on $\mathcal{E}$ is denoted by $\mathcal{E}(\mathbb{F}_{p^2})$.
+Every point in this group is an element of the product set $\mathbb{F}_{p^2}$, which means that it is a sequence (or in this case a tuple) of 2 elements of $\mathbb{F}_{p}$ (as denoted by the power of $p$).
+Every element in the field $\mathbb{F}_{p^2}$ can therefore be seen as complex number.
+Group operations follow the elementary operations as defined for complex numbers. 
+During the remainder of this chapter, we work in the cryptographic group $\mathcal{E}(\mathbb{F}_{p^2}) \left[ N \right]$, where $N$ is a 246-bit prime (which is fixed according to \cite[Equation 2]{costello2015fourq}).
+
+\section{\texorpdfstring{{\fourqs} scalar multiplication}{FourQ's scalar multiplication}} \label{sec: FourQ's scalar multiplication}
+{\fourqs} scalar multiplication routine can be seen in \Cref{algo: FourQ's scalar multiplication}.
+First, the endomorphisms for point $P$ are computed.
+Next, the lookup table $T$ is precomputed.
+This uses the endomorphisms computed earlier.
+After decomposing and recoding the scalar, the algorithm continues to execute the main loop.
+This is where the point doublings and additions of the algorithm take place.
+Each of previously described steps are explained in more detail in the upcoming subsections.
+%
+\begin{algorithm}
+	\algorithmicrequire Point $P \in \mathcal{E}(\mathbb{F}_{p^2}) \left[ N \right]$ and integer scalar $m \in [0, 2^{256})$.\\
+	\algorithmicensure $[m]P$.
+	%	
+	\begin{algorithmic}[1]
+		\Statex \textbf{Compute endomorphisms}
+		\State Compute $\phi(P), \psi(P)$ and $\psi(\phi(P))$ as described in \Cref{subsec: The endomorphisms psi and phi}.
+		\Statex \textbf{Precompute lookup table}
+		\State Compute $T[u] = P + [u_0] \phi(P) + [u_1] \psi(P) + [u_2] \psi(\phi(P))$ for $u = (u_2, u_1, u_0)_2$ in $0 \le u \le 7$. \label{lst:fourq_scalar_mult:precompute table}
+		\Statex \textbf{Scalar Decomposition}
+		\State Decompose $m$ into the multiscalar $(a_1, a_2, a_3, a_4)$ as described in \Cref{subsec: Scalar decomposition}.
+		\Statex \textbf{Scalar recoding}
+		\State Recode $(a_1, a_2, a_3, a_4)$ into $(d_{64}, \ldots , d_0)$ and $(m_{64}, \ldots, m_0)$ as described in \Cref{subsec: Scalar multiplication}. Write $s_i = 1$ if $m_i = -1$ and $s_i = -1$ if $m_i = 0$.
+		\Statex \textbf{Main loop:}
+		\State $Q = s_{64} \cdot T[d_{64}]$ \label{lst:fourq scalar mult:initial assignment}
+		\For{$i = 63$ \textbf{downto} $0$}
+			\State $Q = [2]Q$				\label{lst:fourq scalar mult:double oper}
+			\State $Q = Q + s_i \cdot T[d_i]$ \label{lst:fourq scalar mult:add oper}
+		\EndFor
+		\State \textbf{Return} $Q$
+	\end{algorithmic}
+	%
+	\captionof{algorithm}{{\fourqs} scalar multiplication on $\mathcal{E}(\mathbb{F}_{p^2}) \left[ N \right]$ \cite{costello2015fourq}.}
+	\label{algo: FourQ's scalar multiplication}
+\end{algorithm}
+%
+
+\input{subsections/fourq_endomorphisms}
+\input{subsections/fourq_decomposition}
+\input{subsections/fourq_multiplication}
+\input{subsections/fourq_results}
