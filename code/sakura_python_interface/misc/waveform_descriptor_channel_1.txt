@@ -1,0 +1,58 @@
+"
+DESCRIPTOR_NAME    : WAVEDESC           
+TEMPLATE_NAME      : LECROY_2_3         
+COMM_TYPE          : byte               
+COMM_ORDER         : LOFIRST            
+WAVE_DESCRIPTOR    : 346                
+USER_TEXT          : 0                  
+RES_DESC1          : 0                  
+TRIGTIME_ARRAY     : 0                  
+RIS_TIME_ARRAY     : 0                  
+RES_ARRAY1         : 0                  
+WAVE_ARRAY_1       : 0                  
+WAVE_ARRAY_2       : 0                  
+RES_ARRAY2         : 0                  
+RES_ARRAY3         : 0                  
+INSTRUMENT_NAME    : LECROYWR610Zi      
+INSTRUMENT_NUMBER  : 60696              
+TRACE_LABEL        :                    
+RESERVED1          : 0                  
+RESERVED2          : 0                  
+WAVE_ARRAY_COUNT   : 0                  
+PNTS_PER_SCREEN    : 0                  
+FIRST_VALID_PNT    : -1                 
+LAST_VALID_PNT     : -1                 
+FIRST_POINT        : 0                  
+SPARSING_FACTOR    : 1                  
+SEGMENT_INDEX      : 0                  
+SUBARRAY_COUNT     : 1                  
+SWEEPS_PER_ACQ     : 0                  
+POINTS_PER_PAIR    : 0                  
+PAIR_OFFSET        : 0                  
+VERTICAL_GAIN      : 1.5625e-003        
+VERTICAL_OFFSET    : -0.0000e+000       
+MAX_VALUE          : 1.2700e+002        
+MIN_VALUE          : -1.2800e+002       
+NOMINAL_BITS       : 16                 
+NOM_SUBARRAY_COUNT : 1                  
+HORIZ_INTERVAL     : 5.0000e-007        
+HORIZ_OFFSET       : 0.00000000e+000    
+PIXEL_OFFSET       : 0.00000000e+000    
+VERTUNIT           : Unit Name = V
+HORUNIT            : Unit Name = S
+HORIZ_UNCERTAINTY  : 5.0000e-007        
+TRIGGER_TIME       : Date = JAN  1, 2000, Time =  0: 0: 0.000000000
+ACQ_DURATION       : 0.0000e+000        
+RECORD_TYPE        : single_sweep       
+PROCESSING_DONE    : no_processing      
+RESERVED5          : 0                  
+RIS_SWEEPS         : 1                  
+TIMEBASE           : 1_ps/div           
+VERT_COUPLING      : DC_1MOhm           
+PROBE_ATT          : 1.0000e+000        
+FIXED_VERT_GAIN    : 1_uV/div           
+BANDWIDTH_LIMIT    : off                
+VERTICAL_VERNIER   : 0.0000e+000        
+ACQ_VERT_OFFSET    : 0.0000e+000        
+WAVE_SOURCE        : CHANNEL_1          
+"

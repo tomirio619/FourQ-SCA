@@ -1,0 +1,23 @@
+Questions:
+- In the FourQ hardware design provided, at some point read thee following points:
+
+x-coord[0,0], x-coord[0,1], x-coord[1,0], x-coord[1,1]
+y-coord[0,0], y-coord[0,1], y-coord[1,0], y-coord[1,1]
+
+What are these points?
+Of course these points are related to the result of the scalar multiplication.
+The scalar m has the values [0, 2^{256}) (thus a 256 bit value).
+
+When we take a look at the initialization phase, where the base point is written to ROM,
+we can also see that eight writes are being done:
+x0, x1, y0, y1.
+
+The base point P=(X, Y) is just a tuple of 128 bit values.
+So both X and Y are 128 bit values.
+As we can write 64 bit to the FPGA, we write these values in parts of 2.
+
+The address is a 9 bit value.
+Depending on the first, we either load it as the lower (starting from bit 0) or upper half of the (in total)
+128 word stored in ROM.
+- First bit 0? lower half written
+- first bit 1? upper half written
