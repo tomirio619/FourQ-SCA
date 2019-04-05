@@ -1,5 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-\PYG{n}{ip\PYGZus{}address}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}192.168.0.1\PYGZdq{}}
-\PYG{n}{command} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}IP:\PYGZdq{}} \PYG{o}{+} \PYG{n}{ip\PYGZus{}address}
-\PYG{n}{\PYGZus{}scope}\PYG{o}{.}\PYG{n}{MakeConnection}\PYG{p}{(}\PYG{n}{command}\PYG{p}{)}
-\end{Verbatim}
